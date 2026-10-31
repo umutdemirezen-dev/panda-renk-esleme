@@ -1,0 +1,11 @@
+{
+  "appId": "com.pandagamesstudio.renkesleme",
+  "appName": "Panda Renk Esleme",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#BFE9FB",
+    "allowMixedContent": false,
+    "captureInput": false,
+    "webContentsDebuggingEnabled": false
+  }
+}

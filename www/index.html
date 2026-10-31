@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#7cc8f0">
+<title>Aynı Renklere Boya! - Panda Games Studio</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+html,body{width:100%;height:100%;overflow:hidden;font-family:"Baloo 2","Fredoka","Nunito","Trebuchet MS","Segoe UI",Arial,sans-serif;background:#bfe6f7;color:#3a2c1c}
+:root{--u:min(1vh,0.62vw)}
+button{font-family:inherit;border:none;cursor:pointer}
+.screen{position:fixed;inset:0;display:none}
+.screen.active{display:block}
+
+/* ---------- Background room ---------- */
+.room{position:absolute;inset:0;background:
+ radial-gradient(ellipse at 50% 120%,#f6d9b0 0 35%,transparent 36%),
+ linear-gradient(#bfe7f6 0%,#d9f1f7 55%,#f3dcb8 55%,#ecc995 100%);overflow:hidden}
+.room .win{position:absolute;right:6%;top:6%;width:18%;height:38%;border:calc(var(--u)*1.4) solid #fff;border-radius:calc(var(--u)*2);background:linear-gradient(#9fdcff,#d8f4ff);box-shadow:0 0 0 calc(var(--u)*.6) #e9d3b3}
+.room .win:after{content:"";position:absolute;left:50%;top:0;bottom:0;width:calc(var(--u)*1.2);background:#fff;transform:translateX(-50%)}
+.room .pic{position:absolute;left:9%;top:9%;width:13%;height:20%;background:linear-gradient(#ffe7a8,#a9e39b);border:calc(var(--u)*1) solid #f7b267;border-radius:calc(var(--u)*1)}
+.room .rug{position:absolute;left:28%;right:28%;bottom:3%;height:12%;border-radius:50%;background:#a6e3e0;opacity:.8}
+.room .shelf{position:absolute;left:2%;bottom:16%;width:14%;height:30%;background:#f7c88a;border-radius:calc(var(--u)*1.5);opacity:.6}
+.room .plant{position:absolute;right:3%;bottom:18%;width:9%;height:22%;border-radius:50% 50% 10% 10%;background:#8fd28b;opacity:.7}
+
+/* ---------- Generic buttons ---------- */
+.rbtn{width:calc(var(--u)*11);height:calc(var(--u)*11);border-radius:calc(var(--u)*3);display:flex;align-items:center;justify-content:center;
+ background:linear-gradient(#ffb04d,#ff8a1e);box-shadow:0 calc(var(--u)*.9) 0 #c95f00,0 calc(var(--u)*1.6) calc(var(--u)*2) rgba(0,0,0,.2);border:calc(var(--u)*.6) solid #fff;transition:transform .08s}
+.rbtn:active{transform:translateY(calc(var(--u)*.7));box-shadow:0 calc(var(--u)*.2) 0 #c95f00}
+.rbtn svg{width:62%;height:62%}
+.rbtn.green{background:linear-gradient(#7ee05d,#43b52c);box-shadow:0 calc(var(--u)*.9) 0 #2c7d1b,0 calc(var(--u)*1.6) calc(var(--u)*2) rgba(0,0,0,.2)}
+.rbtn.big{width:calc(var(--u)*15);height:calc(var(--u)*15);border-radius:calc(var(--u)*4)}
+.rbtn.off{filter:grayscale(.9) brightness(1.05)}
+
+/* ---------- Splash ---------- */
+#splash{background:radial-gradient(ellipse at 50% 40%,#d6f1fd 0%,#b9e6fa 45%,#9fdcf7 100%);z-index:50}
+#splash .wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#splash .logoBox{width:calc(var(--u)*62);height:calc(var(--u)*46);animation:pop 1s cubic-bezier(.2,1.6,.4,1) both}
+#splash .logo{width:100%;height:100%;overflow:visible}
+#splash .head{transform-origin:150px 190px;animation:sway 2.2s 1s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+#splash .spark{transform-box:fill-box;transform-origin:center;animation:twinkle 1.6s ease-in-out infinite}
+#splash .spark:nth-of-type(2){animation-delay:.4s}#splash .spark:nth-of-type(3){animation-delay:.8s}#splash .spark:nth-of-type(4){animation-delay:1.2s}
+@keyframes twinkle{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.55);opacity:.55}}
+#splash .brand{margin-top:calc(var(--u)*4);font-family:"Roboto","Arial Black","Segoe UI",Arial,sans-serif;font-size:calc(var(--u)*8.5);font-weight:900;color:#fff;letter-spacing:.01em;
+ -webkit-text-stroke:calc(var(--u)*1.1) #3d2f7c;paint-order:stroke fill;text-shadow:0 calc(var(--u)*.7) 0 #3d2f7c;animation:rise .8s .5s both;white-space:nowrap}
+@keyframes pop{0%{transform:scale(0) rotate(-20deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes rise{0%{opacity:0;transform:translateY(30px)}100%{opacity:1;transform:none}}
+@keyframes load{to{width:100%}}
+#splash .blink{animation:blink 3s 1.2s infinite}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+
+/* ---------- Title ---------- */
+.title{font-weight:900;letter-spacing:.02em;text-align:center;line-height:1;
+ -webkit-text-stroke:calc(var(--u)*.5) #fff;paint-order:stroke fill;text-shadow:0 calc(var(--u)*.6) 0 rgba(0,0,0,.18)}
+.title .r{color:#ff4d6d}.title .g{color:#3fb34f}.title .p{color:#9b51e0}.title .o{color:#ff8a1e}.title .b{color:#2f8cff}
+
+/* ---------- Menu ---------- */
+#menu .content{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--u)*3.2)}
+#menu .title{font-size:calc(var(--u)*12)}
+#menu .tag{font-size:calc(var(--u)*4.2);font-weight:800;color:#6b4f2a;background:rgba(255,255,255,.75);padding:calc(var(--u)*.8) calc(var(--u)*3);border-radius:99px;margin-top:calc(var(--u)*-1)}
+.mbtn{min-width:calc(var(--u)*62);padding:calc(var(--u)*2.6) calc(var(--u)*5);border-radius:calc(var(--u)*5);font-size:calc(var(--u)*6);font-weight:900;color:#fff;
+ border:calc(var(--u)*.7) solid #fff;display:flex;align-items:center;justify-content:center;gap:calc(var(--u)*2);text-shadow:0 calc(var(--u)*.4) 0 rgba(0,0,0,.2);transition:transform .08s}
+.mbtn:active{transform:translateY(calc(var(--u)*.8)) scale(.98)}
+.mbtn.play{background:linear-gradient(#7ee05d,#3fb52c);box-shadow:0 calc(var(--u)*1.2) 0 #2c7d1b,0 calc(var(--u)*2) calc(var(--u)*3) rgba(0,0,0,.2);font-size:calc(var(--u)*7.5);animation:breath 1.8s ease-in-out infinite}
+.mbtn.lvls{background:linear-gradient(#5fb6ff,#2f86f0);box-shadow:0 calc(var(--u)*1.2) 0 #1b5fb5,0 calc(var(--u)*2) calc(var(--u)*3) rgba(0,0,0,.2)}
+.mbtn small{font-size:.55em;opacity:.95}
+@keyframes breath{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+#menu .corner{position:absolute;top:calc(var(--u)*3);right:calc(var(--u)*3);display:flex;gap:calc(var(--u)*2)}
+#menu .privacy{position:absolute;left:calc(var(--u)*3);bottom:calc(var(--u)*3);padding:calc(var(--u)*1.6) calc(var(--u)*3);border-radius:99px;background:rgba(255,255,255,.85);font-size:calc(var(--u)*3.4);font-weight:800;color:#6b4f2a;display:flex;align-items:center;gap:calc(var(--u)*1.2)}
+#menu .mascot{position:absolute;left:4%;bottom:6%;width:calc(var(--u)*32);animation:bob 2.4s ease-in-out infinite}
+#menu .mascot2{position:absolute;right:4%;bottom:6%;width:calc(var(--u)*28);animation:bob 2.4s 1.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-4%) rotate(3deg)}}
+.studio{position:absolute;bottom:calc(var(--u)*3);right:calc(var(--u)*3);font-size:calc(var(--u)*3);font-weight:800;color:#8a6a3d;opacity:.8}
+
+/* ---------- Levels ---------- */
+#levels .top{position:absolute;top:calc(var(--u)*3);left:calc(var(--u)*3);right:calc(var(--u)*3);display:flex;align-items:center;justify-content:space-between}
+#levels .title{font-size:calc(var(--u)*8)}
+#levels .gridwrap{position:absolute;top:calc(var(--u)*19);bottom:calc(var(--u)*3);left:5%;right:5%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(var(--u)*1)}
+#levels .grid{display:grid;grid-template-columns:repeat(10,1fr);gap:calc(var(--u)*2.4)}
+.lv{aspect-ratio:1;border-radius:calc(var(--u)*3);font-size:calc(var(--u)*6);font-weight:900;color:#fff;position:relative;
+ background:linear-gradient(#ffcf4a,#ffad1f);border:calc(var(--u)*.6) solid #fff;box-shadow:0 calc(var(--u)*.9) 0 #d17f00;text-shadow:0 calc(var(--u)*.3) 0 rgba(0,0,0,.2)}
+.lv:active{transform:translateY(calc(var(--u)*.6))}
+.lv.done{background:linear-gradient(#7ee05d,#3fb52c);box-shadow:0 calc(var(--u)*.9) 0 #2c7d1b}
+.lv.cur{animation:breath 1.4s infinite}
+.lv.lock{background:linear-gradient(#c9b8a3,#a8957d);box-shadow:0 calc(var(--u)*.9) 0 #7c6a54}
+.lv .star{position:absolute;top:-18%;right:-14%;width:45%}
+.lv .lk{position:absolute;bottom:-12%;right:-12%;width:48%}
+.lv.lock{color:rgba(255,255,255,.75)}
+.lv.pay{background:linear-gradient(#ffe08a,#ffc84a);box-shadow:0 calc(var(--u)*.9) 0 #d19a10}
+.lv.shake{animation:lvshake .45s}
+@keyframes lvshake{0%,100%{transform:none}20%{transform:translateX(-12%) rotate(-6deg)}40%{transform:translateX(10%) rotate(5deg)}60%{transform:translateX(-7%) rotate(-3deg)}80%{transform:translateX(4%)}}
+
+/* ---------- Game ---------- */
+#game .hdr{position:absolute;top:calc(var(--u)*2.5);left:calc(var(--u)*3);right:calc(var(--u)*3);display:flex;align-items:center;justify-content:space-between;z-index:3}
+#game .hdr .title{font-size:calc(var(--u)*9)}
+#game .hdr .left{display:flex;gap:calc(var(--u)*2)}
+.lvlbadge{position:absolute;top:calc(var(--u)*14.5);left:50%;transform:translateX(-50%);background:rgba(255,255,255,.85);border-radius:99px;padding:calc(var(--u)*.5) calc(var(--u)*3);font-weight:900;font-size:calc(var(--u)*3.6);color:#6b4f2a;z-index:3;white-space:nowrap}
+.panel{position:absolute;left:0;top:calc(var(--u)*17);bottom:calc(var(--u)*7);width:calc(var(--u)*30);background:linear-gradient(90deg,#f4dcb6,#fbe9cc);border-radius:0 calc(var(--u)*4) calc(var(--u)*4) 0;
+ box-shadow:0 calc(var(--u)*1) calc(var(--u)*3) rgba(0,0,0,.18),inset calc(var(--u)*-.8) 0 0 #e5c18f;display:flex;align-items:center;padding-left:calc(var(--u)*2);z-index:2}
+.brush{width:calc(var(--u)*9);height:85%;flex:none}
+.palette{flex:1;height:100%;display:flex;flex-direction:column;justify-content:space-evenly;align-items:center;background:#fff7e8;margin:calc(var(--u)*2) calc(var(--u)*2) calc(var(--u)*2) calc(var(--u)*1);border-radius:calc(var(--u)*3);box-shadow:inset 0 0 0 calc(var(--u)*.5) #f0d6ad}
+.sw{width:calc(var(--u)*10.5);height:calc(var(--u)*10.5);border-radius:50%;border:calc(var(--u)*.8) solid #fff;box-shadow:0 calc(var(--u)*.7) 0 rgba(0,0,0,.25),inset calc(var(--u)*-1) calc(var(--u)*-1.2) 0 rgba(0,0,0,.18),inset calc(var(--u)*1) calc(var(--u)*1) 0 rgba(255,255,255,.45);transition:transform .12s}
+.sw.wht{border-color:#d4d4de}
+.sw.sel{transform:scale(1.18);box-shadow:0 0 0 calc(var(--u)*1) #ff8a1e,0 calc(var(--u)*.7) 0 rgba(0,0,0,.25),inset calc(var(--u)*-1) calc(var(--u)*-1.2) 0 rgba(0,0,0,.18),inset calc(var(--u)*1) calc(var(--u)*1) 0 rgba(255,255,255,.45)}
+.board{position:absolute;top:calc(var(--u)*19);left:50%;transform:translateX(-50%);width:calc(var(--u)*72);height:calc(var(--u)*72);background:#fff;border-radius:calc(var(--u)*4);box-shadow:0 calc(var(--u)*1.2) calc(var(--u)*3.5) rgba(0,0,0,.18);padding:calc(var(--u)*2);z-index:2;margin-left:calc(var(--u)*-2)}
+.board svg{width:100%;height:100%;display:block}
+.board .rg{cursor:pointer;transition:fill .18s}
+.board.shake{animation:shake .5s}
+@keyframes shake{0%,100%{transform:translateX(-50%)}20%{transform:translateX(calc(-50% - 14px)) rotate(-1.5deg)}40%{transform:translateX(calc(-50% + 12px)) rotate(1.5deg)}60%{transform:translateX(calc(-50% - 8px))}80%{transform:translateX(calc(-50% + 5px))}}
+.rg.hint{animation:hint .45s 3}
+@keyframes hint{50%{stroke:#ff3b8d;stroke-width:9}}
+.rg.pop{animation:rpop .3s}
+@keyframes rpop{50%{opacity:.6}}
+.ref{position:absolute;top:calc(var(--u)*27);right:calc(var(--u)*4);width:calc(var(--u)*40);height:calc(var(--u)*40);background:#fff;border-radius:calc(var(--u)*3.5);box-shadow:0 calc(var(--u)*1) calc(var(--u)*3) rgba(0,0,0,.18);padding:calc(var(--u)*1.8);z-index:2}
+.ref svg{width:100%;height:100%;display:block}
+.ref .eye{position:absolute;top:calc(var(--u)*-5);left:50%;transform:translateX(-50%);width:calc(var(--u)*9);height:calc(var(--u)*9);border-radius:50%;background:#ff8f8f;border:calc(var(--u)*.6) solid #fff;box-shadow:0 calc(var(--u)*.6) 0 #d65e5e;display:flex;align-items:center;justify-content:center}
+.ref .eye svg{width:70%;height:70%}
+.ref .lbl{position:absolute;bottom:calc(var(--u)*-6);left:0;right:0;text-align:center;font-weight:900;font-size:calc(var(--u)*3.4);color:#6b4f2a}
+.ctrl{position:absolute;right:calc(var(--u)*5);bottom:calc(var(--u)*5);display:flex;gap:calc(var(--u)*7);align-items:flex-end;z-index:3}
+#gUndo{width:calc(var(--u)*12);height:calc(var(--u)*12);margin-bottom:calc(var(--u)*5)}
+#btnDone{width:calc(var(--u)*16);height:calc(var(--u)*16)}
+#btnDone{animation:none}
+#btnDone.ready{animation:breath 1s infinite}
+.bubble{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) scale(0);background:#fff;border-radius:calc(var(--u)*4);padding:calc(var(--u)*2) calc(var(--u)*4);font-size:calc(var(--u)*5.5);font-weight:900;color:#ff8a1e;box-shadow:0 calc(var(--u)*1) calc(var(--u)*3) rgba(0,0,0,.2);z-index:6;pointer-events:none;transition:transform .25s cubic-bezier(.2,1.6,.4,1);white-space:nowrap}
+.bubble.show{transform:translate(-50%,-50%) scale(1)}
+
+/* ---------- Overlays / modals ---------- */
+.ov{position:fixed;inset:0;background:rgba(40,25,10,.45);display:none;align-items:center;justify-content:center;z-index:20}
+.ov.show{display:flex;animation:fade .2s}
+@keyframes fade{from{opacity:0}}
+.card{background:#fffaf0;border-radius:calc(var(--u)*5);border:calc(var(--u)*1) solid #fff;box-shadow:0 calc(var(--u)*2) calc(var(--u)*6) rgba(0,0,0,.3);padding:calc(var(--u)*4) calc(var(--u)*6);text-align:center;max-width:90vw;max-height:92vh;position:relative;animation:pop .35s cubic-bezier(.2,1.5,.4,1)}
+.card h2{font-size:calc(var(--u)*7);font-weight:900;color:#ff8a1e;margin-bottom:calc(var(--u)*1.5)}
+.card p{font-size:calc(var(--u)*3.8);font-weight:700;color:#6b4f2a}
+.card .x{position:absolute;top:calc(var(--u)*-3);right:calc(var(--u)*-3);width:calc(var(--u)*10);height:calc(var(--u)*10);border-radius:50%;background:#ff6b6b;color:#fff;font-size:calc(var(--u)*6);font-weight:900;border:calc(var(--u)*.7) solid #fff;box-shadow:0 calc(var(--u)*.6) 0 #c94848;line-height:1}
+.row{display:flex;gap:calc(var(--u)*3);justify-content:center;align-items:center;margin-top:calc(var(--u)*3)}
+.stars{display:flex;justify-content:center;gap:calc(var(--u)*1);margin:calc(var(--u)*1) 0}
+.stars svg{width:calc(var(--u)*14);animation:pop .5s cubic-bezier(.2,1.6,.4,1) both}
+.stars svg:nth-child(2){width:calc(var(--u)*18);animation-delay:.15s;margin-top:calc(var(--u)*-3)}
+.stars svg:nth-child(3){animation-delay:.3s}
+.winart{width:calc(var(--u)*30);height:calc(var(--u)*30);margin:0 auto}
+.buybtn{margin-top:calc(var(--u)*3);padding:calc(var(--u)*2.6) calc(var(--u)*6);border-radius:calc(var(--u)*5);background:linear-gradient(#7ee05d,#3fb52c);color:#fff;font-weight:900;font-size:calc(var(--u)*5.5);border:calc(var(--u)*.7) solid #fff;box-shadow:0 calc(var(--u)*1.2) 0 #2c7d1b;text-shadow:0 calc(var(--u)*.3) 0 rgba(0,0,0,.2)}
+.buybtn:active{transform:translateY(calc(var(--u)*.8))}
+.linkbtn{margin-top:calc(var(--u)*2);background:none;font-size:calc(var(--u)*3.2);font-weight:800;color:#a07c4a;text-decoration:underline}
+.feat{display:flex;gap:calc(var(--u)*3);justify-content:center;margin:calc(var(--u)*2) 0}
+.feat div{background:#fff;border-radius:calc(var(--u)*3);padding:calc(var(--u)*1.6) calc(var(--u)*2.4);font-weight:800;font-size:calc(var(--u)*3.4);color:#6b4f2a;box-shadow:0 calc(var(--u)*.6) 0 #f0d6ad}
+.feat b{display:block;font-size:calc(var(--u)*6);color:#3fb52c}
+/* gate */
+.gq{font-size:calc(var(--u)*8);font-weight:900;color:#2f86f0;margin:calc(var(--u)*1) 0}
+.gin{min-width:calc(var(--u)*22);height:calc(var(--u)*11);margin:0 auto calc(var(--u)*2);border-radius:calc(var(--u)*2.5);background:#fff;border:calc(var(--u)*.6) solid #e8cfa3;font-size:calc(var(--u)*7);font-weight:900;display:flex;align-items:center;justify-content:center;color:#3a2c1c}
+.pad{display:grid;grid-template-columns:repeat(6,calc(var(--u)*11));gap:calc(var(--u)*1.6);justify-content:center}
+.pad button{height:calc(var(--u)*10);border-radius:calc(var(--u)*2.5);background:#fff;font-size:calc(var(--u)*5.5);font-weight:900;color:#6b4f2a;box-shadow:0 calc(var(--u)*.7) 0 #e2c597}
+.pad button:active{transform:translateY(calc(var(--u)*.5))}
+.pad .ok{background:#5ccf3c;color:#fff;box-shadow:0 calc(var(--u)*.7) 0 #2c7d1b}
+.pad .del{background:#ffb04d;color:#fff;box-shadow:0 calc(var(--u)*.7) 0 #c95f00}
+.gin.err{animation:shake2 .4s;border-color:#ff6b6b}
+@keyframes shake2{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.policy{text-align:left;max-height:58vh;overflow-y:auto;padding-right:calc(var(--u)*2);width:min(80vw,calc(var(--u)*130))}
+.policy h3{font-size:calc(var(--u)*4.2);color:#ff8a1e;margin:calc(var(--u)*2) 0 calc(var(--u)*.6)}
+.policy p,.policy li{font-size:calc(var(--u)*3.3);font-weight:600;line-height:1.45;color:#5b4423}
+.policy ul{padding-left:1.2em}
+.bigref{width:calc(var(--u)*70);height:calc(var(--u)*70);background:#fff;border-radius:calc(var(--u)*4);padding:calc(var(--u)*3)}
+.bigref svg{width:100%;height:100%}
+.toast{position:fixed;left:50%;top:calc(var(--u)*6);transform:translateX(-50%) translateY(-200%);background:#3fb52c;color:#fff;font-weight:900;font-size:calc(var(--u)*4.4);padding:calc(var(--u)*2) calc(var(--u)*5);border-radius:99px;border:calc(var(--u)*.6) solid #fff;z-index:40;transition:transform .35s cubic-bezier(.2,1.5,.4,1)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:30}
+#rotate{position:fixed;inset:0;background:#ffe9b8;z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;gap:4vw;font-weight:900;font-size:6vw;color:#6b4f2a;text-align:center;padding:8vw}
+#rotate svg{width:30vw;animation:rot 1.8s ease-in-out infinite}
+@keyframes rot{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+@media (orientation:portrait){#rotate{display:flex}}
+</style>
+</head>
+<body>
+
+<!-- ===== SPLASH ===== -->
+<div id="splash" class="screen active">
+  <div class="wrap">
+    <div class="logoBox"><svg class="logo" viewBox="-40 -10 380 280">
+      <defs><clipPath id="headClip"><ellipse cx="150" cy="150" rx="108" ry="94"/></clipPath></defs>
+      <!-- sparkles -->
+      <path class="spark" d="M-2 58 Q2 72 16 76 Q2 80 -2 94 Q-6 80 -20 76 Q-6 72 -2 58Z" fill="#FFD43B"/>
+      <path class="spark" d="M318 24 Q321 35 332 38 Q321 41 318 52 Q315 41 304 38 Q315 35 318 24Z" fill="#FF6B8B"/>
+      <path class="spark" d="M326 148 Q329 159 340 162 Q329 165 326 176 Q323 165 312 162 Q323 159 326 148Z" fill="#5BB8F5"/>
+      <path class="spark" d="M-2 206 Q1 216 11 219 Q1 222 -2 232 Q-5 222 -15 219 Q-5 216 -2 206Z" fill="#9B7BF0"/>
+      <circle cx="30" cy="132" r="6" fill="#FF9A66"/><circle cx="292" cy="254" r="7" fill="#7FD3B8"/>
+      <g class="head">
+        <circle cx="78" cy="60" r="50" fill="#1f1d24"/><circle cx="222" cy="60" r="50" fill="#1f1d24"/>
+        <ellipse cx="150" cy="150" rx="108" ry="94" fill="#fff"/>
+        <g clip-path="url(#headClip)"><ellipse cx="150" cy="262" rx="150" ry="64" fill="#E4E0F5"/></g>
+        <ellipse cx="150" cy="150" rx="108" ry="94" fill="none" stroke="#1f1d24" stroke-width="11"/>
+        <ellipse cx="104" cy="140" rx="34" ry="38" fill="#1f1d24" transform="rotate(12 104 140)"/>
+        <ellipse cx="196" cy="140" rx="34" ry="38" fill="#1f1d24" transform="rotate(-12 196 140)"/>
+        <g class="blink" style="transform-origin:150px 142px">
+          <circle cx="110" cy="142" r="14" fill="#0d0c10"/><circle cx="190" cy="142" r="14" fill="#0d0c10"/>
+          <circle cx="104" cy="136" r="5.5" fill="#fff"/><circle cx="184" cy="136" r="5.5" fill="#fff"/>
+          <circle cx="114" cy="148" r="2.2" fill="#fff"/><circle cx="194" cy="148" r="2.2" fill="#fff"/>
+        </g>
+        <ellipse cx="78" cy="192" rx="26" ry="17" fill="#FFAFC0"/><ellipse cx="222" cy="192" rx="26" ry="17" fill="#FFAFC0"/>
+        <path d="M138 180 Q150 175 162 180 Q158 192 150 197 Q142 192 138 180Z" fill="#1f1d24" stroke="#1f1d24" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M122 208 Q136 220 150 208 Q164 220 178 208" fill="none" stroke="#1f1d24" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+    </svg></div>
+    <div class="brand">PANDA GAMES STUDIO</div>
+  </div>
+</div>
+
+<!-- ===== MENU ===== -->
+<div id="menu" class="screen">
+  <div class="room"><div class="win"></div><div class="pic"></div><div class="shelf"></div><div class="plant"></div><div class="rug"></div></div>
+  <svg class="mascot" id="mascotA" viewBox="0 0 300 300"></svg>
+  <svg class="mascot2" id="mascotB" viewBox="0 0 300 300"></svg>
+  <div class="corner"><button class="rbtn" id="mSound" aria-label="Ses"></button></div>
+  <div class="content">
+    <div class="title"><span class="r">Aynı</span> <span class="g">Renklere</span> <span class="p">Boya!</span></div>
+    <div class="tag">Panda Renk Eşleme</div>
+    <button class="mbtn play" id="btnPlay">▶ <span id="playLbl">Oyna</span></button>
+    <button class="mbtn lvls" id="btnLevels">★ Seviyeler <small>(1-50)</small></button>
+  </div>
+  <button class="privacy" id="btnPrivacy">🔒 Gizlilik Politikası</button>
+  <button class="privacy" id="btnReset" style="left:auto;right:calc(var(--u)*3);bottom:calc(var(--u)*9)">↺ İlerlemeyi Sıfırla</button>
+  <div class="studio">Panda Games Studio</div>
+</div>
+
+<!-- ===== LEVELS ===== -->
+<div id="levels" class="screen">
+  <div class="room"><div class="win"></div><div class="pic"></div><div class="rug"></div></div>
+  <div class="top">
+    <button class="rbtn" id="lvHome" aria-label="Ana menü"></button>
+    <div class="title"><span class="o">Seviye</span> <span class="b">Seç</span></div>
+    <button class="rbtn green" id="lvUnlock" aria-label="Tümünü aç"></button>
+  </div>
+  <div class="gridwrap"><div class="grid" id="grid"></div></div>
+</div>
+
+<!-- ===== GAME ===== -->
+<div id="game" class="screen">
+  <div class="room"><div class="win"></div><div class="pic"></div><div class="shelf"></div><div class="plant"></div><div class="rug"></div></div>
+  <div class="hdr">
+    <div class="left"><button class="rbtn" id="gHome" aria-label="Ana menü"></button><button class="rbtn" id="gSay" aria-label="Talimat"></button></div>
+    <div class="title"><span class="r">Aynı</span> <span class="g">Renklere</span> <span class="p">Boya!</span></div>
+    <button class="rbtn" id="gSound" aria-label="Ses"></button>
+  </div>
+  <div class="lvlbadge" id="lvlBadge">Seviye 1</div>
+  <div class="panel">
+    <svg class="brush" viewBox="0 0 40 200" preserveAspectRatio="xMidYMid meet">
+      <rect x="15" y="70" width="10" height="125" rx="5" fill="#b8733a" stroke="#7a4a20" stroke-width="2"/>
+      <rect x="12" y="52" width="16" height="22" rx="3" fill="#c9ced6" stroke="#8a909a" stroke-width="2"/>
+      <path id="brushTip" d="M20 4 C30 18 30 40 28 54 L12 54 C10 40 10 18 20 4 Z" fill="#FF4D4D" stroke="#7a4a20" stroke-width="2"/>
+    </svg>
+    <div class="palette" id="palette"></div>
+  </div>
+  <div class="board" id="board"></div>
+  <div class="ref" id="ref">
+    <button class="eye" id="eyeBtn" aria-label="Büyüt"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="10" ry="7" fill="#fff"/><circle cx="12" cy="12" r="4.5" fill="#c94848"/><circle cx="12" cy="12" r="2" fill="#2f2a26"/></svg></button>
+    <div id="refSvg" style="width:100%;height:100%"></div>
+    <div class="lbl" id="refName">Panda</div>
+  </div>
+  <div class="ctrl">
+    <button class="rbtn" id="gUndo" aria-label="Geri al"></button>
+    <button class="rbtn green big" id="btnDone" aria-label="Bitti"></button>
+  </div>
+  <div class="bubble" id="bubble">Tekrar bak!</div>
+</div>
+
+<!-- ===== OVERLAYS ===== -->
+<div class="ov" id="ovWin"><div class="card">
+  <div class="stars" id="winStars"></div>
+  <h2 id="winTitle">Harika!</h2>
+  <div class="winart" id="winArt"></div>
+  <div class="row">
+    <button class="rbtn" id="wHome" aria-label="Ana menü"></button>
+    <button class="rbtn" id="wAgain" aria-label="Tekrar"></button>
+    <button class="rbtn green big" id="wNext" aria-label="Sonraki"></button>
+  </div>
+</div></div>
+
+<div class="ov" id="ovPay"><div class="card">
+  <button class="x" data-close="ovPay">×</button>
+  <h2>Tüm Seviyeleri Aç!</h2>
+  <p>İlk 10 seviye bitti, harika gidiyorsun! 🎨</p>
+  <div class="feat"><div><b>40+</b>yeni boyama</div><div><b>∞</b>sınırsız oyun</div><div><b>0</b>reklam</div></div>
+  <button class="buybtn" id="btnBuy">Tüm Seviyeleri Aç - 24.99 TL</button><br>
+  <button class="linkbtn" id="btnRestore">Satın alımları geri yükle</button>
+  <p style="font-size:calc(var(--u)*2.8);margin-top:calc(var(--u)*1.5);opacity:.75">Tek seferlik ödeme • Ebeveyn onayı gerekir</p>
+</div></div>
+
+<div class="ov" id="ovGate"><div class="card">
+  <button class="x" data-close="ovGate">×</button>
+  <h2 style="color:#2f86f0">Ebeveyn Onayı</h2>
+  <p>Devam etmek için soruyu yanıtlayın:</p>
+  <div class="gq" id="gateQ">3 + 4 = ?</div>
+  <div class="gin" id="gateIn"></div>
+  <div class="pad" id="gatePad"></div>
+</div></div>
+
+<div class="ov" id="ovPolicy"><div class="card">
+  <button class="x" data-close="ovPolicy">×</button>
+  <h2>Gizlilik Politikası</h2>
+  <div class="policy">
+    <p><b>Panda Games Studio – "Aynı Renklere Boya!"</b><br>Son güncelleme: 31 Ekim 2026</p>
+    <h3>Veri toplamıyoruz</h3>
+    <p>Bu uygulama 2-5 yaş arası çocuklar için tasarlanmıştır. Kişisel bilgi (ad, e-posta, konum, fotoğraf, cihaz kimliği vb.) toplamaz, saklamaz veya üçüncü taraflarla paylaşmaz.</p>
+    <h3>Cihazda saklanan bilgiler</h3>
+    <p>Oyun ilerlemesi (tamamlanan seviyeler, ses ayarı, satın alma durumu) yalnızca cihazınızda yerel olarak saklanır ve hiçbir sunucuya gönderilmez.</p>
+    <h3>Reklam ve takip</h3>
+    <p>Uygulamada reklam, analitik veya takip aracı bulunmaz. İnternet bağlantısı gerektirmez.</p>
+    <h3>Uygulama içi satın alma</h3>
+    <ul><li>İlk 10 seviye ücretsizdir.</li><li>Tüm seviyelerin kilidi tek seferlik 24.99 TL ödeme ile açılır.</li><li>Satın alma işlemi ebeveyn doğrulaması ile korunur. Ödemeler Google Play tarafından işlenir; ödeme bilgilerinize erişimimiz yoktur.</li></ul>
+    <h3>Seslendirme</h3>
+    <p>Türkçe yönergeler, cihazdaki metin okuma motoruyla seslendirilir. Mikrofon kullanılmaz, ses kaydı alınmaz.</p>
+    <h3>Çocukların gizliliği</h3>
+    <p>Uygulama, Google Play Aileler Politikası ve COPPA / KVKK ilkeleri gözetilerek hazırlanmıştır.</p>
+    <h3>İletişim</h3>
+    <p>Sorularınız için: Panda Games Studio – Google Play geliştirici sayfasındaki iletişim adresi.</p>
+  </div>
+</div></div>
+
+<div class="ov" id="ovRef"><div class="card" style="padding:calc(var(--u)*3)">
+  <button class="x" data-close="ovRef">×</button>
+  <div class="bigref" id="bigRef"></div>
+</div></div>
+
+<div class="toast" id="toast">Tüm seviyeler açıldı!</div>
+<canvas id="confetti"></canvas>
+<div id="rotate">
+  <svg viewBox="0 0 100 100"><rect x="30" y="10" width="40" height="80" rx="8" fill="#fff" stroke="#6b4f2a" stroke-width="5"/><circle cx="50" cy="80" r="4" fill="#6b4f2a"/></svg>
+  Lütfen cihazı yan çevir
+</div>
+
+<script>
+(function(){
+"use strict";
+/* ================= CONFIG ================= */
+const TOTAL_LEVELS = 50, FREE_LEVELS = 10, PRICE = "24.99 TL";
+const STORE_KEY = "pgs_renk_esleme_v1";
+const C = {red:"#FF4D4D",blue:"#3D8BFF",yellow:"#FFD93B",green:"#3FC35A",orange:"#FF9A2E",purple:"#A45CFF",
+  pink:"#FF8FB8",sky:"#7FD8FF",brown:"#A0622D",black:"#34343A",
+  white:"#FFFFFF",lime:"#9BE15D",dkgreen:"#2E8B3E",skin:"#FFD2A6",navy:"#2C3E8F",gray:"#A3ABBA",dkbrown:"#6B3A1E",tan:"#D9A066"};
+const BASE = ["red","blue","yellow","green","orange","purple"];
+const ROT  = ["red","orange","yellow","green","sky","blue","purple","pink"];
+/* Boyanmamış parçalar noktalı açık gri desenle gösterilir; böylece "beyaz" boya da görünür olur. */
+const EMPTY = "url(#emptyPat)", INK = "#222";
+/* Several small spots painted with ONE tap (seeds, spots) – kinder for little fingers */
+const dots = (pts, rx, ry) => pts.map(([x,y]) => `M${x-rx} ${y}a${rx} ${ry} 0 1 0 ${rx*2} 0a${rx} ${ry} 0 1 0 ${-rx*2} 0Z`).join("");
+const r1 = v => Math.round(v*10)/10, RAD = Math.PI/180;
+/* 5-point star path */
+const star = (cx, cy, R, r) => { r = r || R*.45; let d = "";
+  for (let i=0;i<10;i++){ const a=(i*36-90)*RAD, q=i%2?r:R; d += (i?"L":"M") + r1(cx+q*Math.cos(a)) + " " + r1(cy+q*Math.sin(a)); } return d + "Z"; };
+/* n separate triangular rays around a centre (each ray = its own region) */
+const rays = (cx, cy, rin, rout, n, half, c) => Array.from({length:n}, (_,i) => {
+  const a=(i*360/n-90)*RAD, h=half*RAD, p=(ang,rr)=>r1(cx+rr*Math.cos(ang))+" "+r1(cy+rr*Math.sin(ang));
+  return {e:"path", d:`M${p(a-h,rin)} L${p(a,rout)} L${p(a+h,rin)} Z`, c}; });
+/* n petals (rotated ellipses) around a centre */
+const petals = (cx, cy, n, dist, rx, ry, c) => Array.from({length:n}, (_,i) => {
+  const deg=i*360/n, x=r1(cx+dist*Math.sin(deg*RAD)), y=r1(cy-dist*Math.cos(deg*RAD));
+  return {e:"ellipse", cx:x, cy:y, rx, ry, transform:`rotate(${deg} ${x} ${y})`, c}; });
+/* half-ring band of a rainbow */
+const band = (cx, cy, R, r, c) => ({e:"path", d:`M${cx-R} ${cy} A${R} ${R} 0 0 1 ${cx+R} ${cy} H${cx+r} A${r} ${r} 0 0 0 ${cx-r} ${cy} Z`, c});
+/* pie wedge from angle a1 to a2 (degrees, 0 = right, clockwise) */
+const wedge = (cx, cy, r, a1, a2, c) => { const p=a=>r1(cx+r*Math.cos(a*RAD))+" "+r1(cy+r*Math.sin(a*RAD));
+  return {e:"path", d:`M${cx} ${cy} L${p(a1)} A${r} ${r} 0 ${a2-a1>180?1:0} 1 ${p(a2)} Z`, c}; };
+/* diagonal lattice lines clipped inside an ellipse (pineapple pattern) */
+const lattice = (cx, cy, a, b, step) => { let d = ""; a-=7; b-=7;
+  [1,-1].forEach(s => { for (let off=-b*1.6; off<=b*1.6; off+=step){
+    const A=1/(a*a)+1/(b*b), B=2*s*off/(b*b), Cc=off*off/(b*b)-1, D=B*B-4*A*Cc; if (D<=0) continue;
+    const u1=(-B-Math.sqrt(D))/(2*A), u2=(-B+Math.sqrt(D))/(2*A);
+    d += `M${r1(cx+u1)} ${r1(cy+s*u1+off)}L${r1(cx+u2)} ${r1(cy+s*u2+off)}`; } });
+  return d; };
+
+/* ================= DRAWINGS (pure SVG, viewBox 0 0 300 300) =================
+   Each shape: e = element, c = target colour key (paintable region),
+   s = static fill (not paintable), other keys = SVG attributes. */
+const DRAWINGS = [
+ { name:"Panda & Bambu", shapes:[
+   {e:"rect",x:222,y:40,width:24,height:240,rx:9,c:"green"},
+   {e:"rect",x:254,y:72,width:20,height:208,rx:8,c:"green"},
+   {e:"path",d:"M222 100 h24 M222 160 h24 M222 220 h24 M254 130 h20 M254 190 h20",s:"none"},
+   {e:"path",d:"M222 85 C200 60 185 70 178 62 C190 92 210 95 222 92 Z",c:"green"},
+   {e:"path",d:"M274 120 C292 100 296 85 294 72 C282 85 270 95 274 120 Z",c:"green"},
+   {e:"circle",cx:72,cy:66,r:24,c:"black"},{e:"circle",cx:178,cy:66,r:24,c:"black"},
+   {e:"circle",cx:72,cy:66,r:11,c:"pink"},{e:"circle",cx:178,cy:66,r:11,c:"pink"},
+   {e:"ellipse",cx:125,cy:208,rx:72,ry:66},
+   {e:"ellipse",cx:72,cy:186,rx:20,ry:36,transform:"rotate(20 72 186)",c:"black"},
+   {e:"ellipse",cx:178,cy:186,rx:20,ry:36,transform:"rotate(-20 178 186)",c:"black"},
+   {e:"ellipse",cx:78,cy:258,rx:32,ry:22,c:"black"},{e:"ellipse",cx:172,cy:258,rx:32,ry:22,c:"black"},
+   {e:"circle",cx:78,cy:260,r:10,c:"pink"},{e:"circle",cx:172,cy:260,r:10,c:"pink"},
+   {e:"circle",cx:125,cy:112,r:62},
+   {e:"ellipse",cx:100,cy:108,rx:16,ry:21,transform:"rotate(-25 100 108)",c:"black"},
+   {e:"ellipse",cx:150,cy:108,rx:16,ry:21,transform:"rotate(25 150 108)",c:"black"},
+   {e:"circle",cx:102,cy:106,r:6,s:"#fff","stroke-width":3},{e:"circle",cx:148,cy:106,r:6,s:"#fff","stroke-width":3},
+   {e:"ellipse",cx:125,cy:130,rx:10,ry:7,s:INK},
+   {e:"path",d:"M112 143 Q125 155 138 143",s:"none"}
+ ]},
+ { name:"Gülen Elma", shapes:[
+   {e:"rect",x:143,y:40,width:15,height:55,rx:7,c:"brown"},
+   {e:"path",d:"M157 72 C172 34 214 30 230 46 C210 76 182 84 157 72 Z",c:"green"},
+   {e:"path",d:"M150 92 C110 60 46 78 46 152 C46 228 104 272 150 254 C196 272 254 228 254 152 C254 78 190 60 150 92 Z",c:"red"},
+   {e:"path",d:"M80 120 Q86 100 104 94",s:"none","stroke-width":5,stroke:"#fff"},
+   {e:"circle",cx:118,cy:152,r:10,s:INK},{e:"circle",cx:182,cy:152,r:10,s:INK},
+   {e:"circle",cx:121,cy:149,r:3,s:"#fff","stroke-width":0},{e:"circle",cx:185,cy:149,r:3,s:"#fff","stroke-width":0},
+   {e:"ellipse",cx:96,cy:186,rx:15,ry:10,c:"pink"},{e:"ellipse",cx:204,cy:186,rx:15,ry:10,c:"pink"},
+   {e:"path",d:"M122 186 Q150 218 178 186 Z",c:"pink"}
+ ]},
+ { name:"Uğur Böceği", shapes:[
+   {e:"ellipse",cx:150,cy:262,rx:128,ry:26,c:"green"},
+   {e:"path",d:"M128 62 Q112 28 92 22 M172 62 Q188 28 208 22",s:"none"},
+   {e:"circle",cx:90,cy:22,r:10,c:"black"},{e:"circle",cx:210,cy:22,r:10,c:"black"},
+   {e:"circle",cx:150,cy:86,r:46,c:"black"},
+   {e:"circle",cx:132,cy:76,r:9,s:"#fff","stroke-width":3},{e:"circle",cx:168,cy:76,r:9,s:"#fff","stroke-width":3},
+   {e:"path",d:"M150 92 A86 86 0 0 0 150 262 Z",c:"red"},
+   {e:"path",d:"M150 92 A86 86 0 0 1 150 262 Z",c:"red"},
+   {e:"circle",cx:112,cy:142,r:16,c:"black"},{e:"circle",cx:188,cy:142,r:16,c:"black"},
+   {e:"circle",cx:100,cy:198,r:14,c:"black"},{e:"circle",cx:200,cy:198,r:14,c:"black"},
+   {e:"circle",cx:126,cy:236,r:10,c:"black"},{e:"circle",cx:174,cy:236,r:10,c:"black"}
+ ]},
+ { name:"Sevimli Araba", shapes:[
+   {e:"path",d:"M10 244 H290",s:"none"},
+   {e:"path",d:"M38 200 V162 Q38 142 58 142 H88 L118 96 Q124 86 138 86 H198 Q212 86 220 96 L250 142 H264 Q282 142 282 162 V200 Q282 212 270 212 H50 Q38 212 38 200 Z",c:"blue"},
+   {e:"path",d:"M128 134 L146 102 H170 V134 Z",c:"sky"},
+   {e:"path",d:"M184 134 V102 H208 L230 134 Z",c:"sky"},
+   {e:"circle",cx:268,cy:168,r:10,c:"yellow"},
+   {e:"rect",x:38,y:160,width:14,height:18,rx:4,c:"red"},
+   {e:"path",d:"M176 150 V200",s:"none"},
+   {e:"circle",cx:95,cy:212,r:30,c:"black"},{e:"circle",cx:225,cy:212,r:30,c:"black"},
+   {e:"circle",cx:95,cy:212,r:11,s:"#ddd"},{e:"circle",cx:225,cy:212,r:11,s:"#ddd"}
+ ]},
+ { name:"Renkli Balık", shapes:[
+   {e:"path",d:"M212 150 L282 92 Q270 150 282 208 Z",c:"purple"},
+   {e:"path",d:"M92 102 Q140 40 196 104 Z",c:"yellow"},
+   {e:"path",d:"M112 196 Q140 250 172 198 Z",c:"yellow"},
+   {e:"ellipse",cx:140,cy:150,rx:94,ry:62,c:"orange"},
+   {e:"path",d:"M130 92 Q112 150 130 208 L158 210 Q140 150 158 90 Z",c:"blue"},
+   {e:"path",d:"M182 98 Q168 150 182 202 L200 194 Q188 150 200 106 Z",c:"blue"},
+   {e:"circle",cx:84,cy:138,r:16,s:"#fff"},{e:"circle",cx:80,cy:138,r:7,s:INK},
+   {e:"path",d:"M52 166 Q64 176 76 168",s:"none"},
+   {e:"circle",cx:40,cy:90,r:9,s:"none","stroke-width":4},{e:"circle",cx:24,cy:58,r:6,s:"none","stroke-width":4},{e:"circle",cx:50,cy:40,r:4,s:"none","stroke-width":3}
+ ]},
+ /* ---------- Seviye 6 ---------- */
+ { name:"Minik Tavşan & Havuç", shapes:[
+   {e:"ellipse",cx:98,cy:72,rx:22,ry:56,transform:"rotate(-10 98 72)",c:"white"},
+   {e:"ellipse",cx:162,cy:72,rx:22,ry:56,transform:"rotate(10 162 72)",c:"white"},
+   {e:"ellipse",cx:98,cy:76,rx:10,ry:38,transform:"rotate(-10 98 76)",c:"pink"},
+   {e:"ellipse",cx:162,cy:76,rx:10,ry:38,transform:"rotate(10 162 76)",c:"pink"},
+   {e:"ellipse",cx:130,cy:226,rx:62,ry:54,c:"white"},
+   {e:"ellipse",cx:96,cy:274,rx:28,ry:14,c:"white"},{e:"ellipse",cx:164,cy:274,rx:28,ry:14,c:"white"},
+   {e:"circle",cx:130,cy:148,r:56,c:"white"},
+   {e:"ellipse",cx:98,cy:168,rx:12,ry:8,c:"pink"},{e:"ellipse",cx:162,cy:168,rx:12,ry:8,c:"pink"},
+   {e:"ellipse",cx:130,cy:157,rx:9,ry:7,c:"pink"},
+   {e:"circle",cx:110,cy:140,r:7,s:INK},{e:"circle",cx:150,cy:140,r:7,s:INK},
+   {e:"circle",cx:112,cy:137,r:2.4,s:"#fff","stroke-width":0},{e:"circle",cx:152,cy:137,r:2.4,s:"#fff","stroke-width":0},
+   {e:"path",d:"M130 164 V172 M120 174 Q126 181 130 172 Q134 181 140 174",s:"none","stroke-width":4},
+   {e:"path",d:"M244 122 C232 96 236 80 246 72 C252 88 254 104 252 122 Z",c:"green"},
+   {e:"path",d:"M252 122 C256 98 270 86 284 88 C278 106 266 118 252 122 Z",c:"green"},
+   {e:"path",d:"M228 126 Q252 110 276 126 L256 272 Q252 282 248 272 Z",c:"orange"},
+   {e:"path",d:"M240 160 h16 M246 200 h12 M236 232 h10",s:"none","stroke-width":4}
+ ]},
+ /* ---------- Seviye 7 ---------- */
+ { name:"Sevimli Civciv", shapes:[
+   {e:"circle",cx:150,cy:150,r:72,c:"yellow"},
+   {e:"ellipse",cx:86,cy:176,rx:17,ry:28,transform:"rotate(25 86 176)",c:"yellow"},
+   {e:"ellipse",cx:214,cy:176,rx:17,ry:28,transform:"rotate(-25 214 176)",c:"yellow"},
+   {e:"path",d:"M106 100 Q150 38 194 100 L180 90 L165 104 L150 88 L135 104 L120 90 Z",c:"white"},
+   {e:"circle",cx:128,cy:138,r:8,s:INK},{e:"circle",cx:172,cy:138,r:8,s:INK},
+   {e:"circle",cx:130,cy:135,r:2.6,s:"#fff","stroke-width":0},{e:"circle",cx:174,cy:135,r:2.6,s:"#fff","stroke-width":0},
+   {e:"ellipse",cx:110,cy:162,rx:11,ry:7,c:"orange"},{e:"ellipse",cx:190,cy:162,rx:11,ry:7,c:"orange"},
+   {e:"path",d:"M136 154 L164 154 L150 172 Z",c:"orange"},
+   {e:"path",d:"M58 196 L84 180 L106 200 L128 180 L150 200 L172 180 L194 200 L216 180 L242 196 Q248 284 150 284 Q52 284 58 196 Z",c:"white"}
+ ]},
+ /* ---------- Seviye 8 ---------- */
+ { name:"Gülen Kurbağa", shapes:[
+   {e:"ellipse",cx:150,cy:252,rx:136,ry:38,c:"dkgreen"},
+   {e:"path",d:"M150 252 L262 226",s:"none"},
+   {e:"ellipse",cx:84,cy:248,rx:30,ry:13,c:"dkgreen"},{e:"ellipse",cx:200,cy:248,rx:30,ry:13,c:"dkgreen"},
+   {e:"ellipse",cx:142,cy:204,rx:72,ry:46,c:"lime"},
+   {e:"ellipse",cx:142,cy:224,rx:40,ry:22,c:"yellow"},
+   {e:"circle",cx:104,cy:116,r:27,c:"lime"},{e:"circle",cx:180,cy:116,r:27,c:"lime"},
+   {e:"ellipse",cx:142,cy:160,rx:82,ry:52,c:"lime"},
+   {e:"circle",cx:104,cy:114,r:15,s:"#fff"},{e:"circle",cx:180,cy:114,r:15,s:"#fff"},
+   {e:"circle",cx:106,cy:117,r:7,s:INK},{e:"circle",cx:178,cy:117,r:7,s:INK},
+   {e:"path",d:dots([[176,150],[112,148],[196,172]],7,6),c:"dkgreen"},
+   {e:"path",d:"M100 172 Q142 204 184 172",s:"none"},
+   {e:"path",d:"M256 216 Q264 190 274 216 Q298 212 280 230 Q286 250 265 240 Q244 250 250 230 Q232 212 256 216 Z",c:"yellow"}
+ ]},
+ /* ---------- Seviye 9 ---------- */
+ { name:"Zürafa", shapes:[
+   {e:"rect",x:112,y:226,width:20,height:56,rx:6,c:"yellow"},{e:"rect",x:146,y:230,width:20,height:52,rx:6,c:"yellow"},
+   {e:"rect",x:196,y:230,width:20,height:52,rx:6,c:"yellow"},{e:"rect",x:228,y:226,width:20,height:56,rx:6,c:"yellow"},
+   {e:"path",d:dots([[122,278],[156,278],[206,278],[238,278]],10,6),c:"brown"},
+   {e:"path",d:"M248 206 Q268 214 264 240",s:"none","stroke-width":4},
+   {e:"ellipse",cx:264,cy:246,rx:8,ry:12,c:"brown"},
+   {e:"path",d:"M72 196 L96 70 L128 74 L122 204 Z",c:"yellow"},
+   {e:"ellipse",cx:176,cy:214,rx:80,ry:42,c:"yellow"},
+   {e:"path",d:"M88 46 L82 22 M112 42 L114 20",s:"none"},
+   {e:"circle",cx:82,cy:20,r:8,c:"brown"},{e:"circle",cx:114,cy:18,r:8,c:"brown"},
+   {e:"ellipse",cx:138,cy:52,rx:14,ry:7,transform:"rotate(-25 138 52)",c:"yellow"},
+   {e:"ellipse",cx:96,cy:70,rx:42,ry:29,transform:"rotate(-15 96 70)",c:"yellow"},
+   {e:"circle",cx:102,cy:60,r:6,s:INK},
+   {e:"path",d:"M62 84 h0 M74 82 h0",s:"none","stroke-width":6},
+   {e:"path",d:"M60 92 Q72 98 84 92",s:"none","stroke-width":4},
+   {e:"path",d:dots([[150,204],[192,226],[220,198],[168,238],[104,118],[102,160]],11,9),c:"brown"}
+ ]},
+ /* ---------- Seviye 10 ---------- */
+ { name:"Şirin Maymun & Muz", shapes:[
+   {e:"ellipse",cx:118,cy:284,rx:22,ry:10,c:"skin"},{e:"ellipse",cx:182,cy:284,rx:22,ry:10,c:"skin"},
+   {e:"path",d:"M100 262 Q50 270 56 220",s:"none","stroke-width":7},
+   {e:"ellipse",cx:150,cy:238,rx:60,ry:48,c:"brown"},
+   {e:"ellipse",cx:150,cy:248,rx:35,ry:30,c:"skin"},
+   {e:"circle",cx:76,cy:126,r:24,c:"brown"},{e:"circle",cx:224,cy:126,r:24,c:"brown"},
+   {e:"circle",cx:76,cy:126,r:12,c:"skin"},{e:"circle",cx:224,cy:126,r:12,c:"skin"},
+   {e:"circle",cx:150,cy:130,r:68,c:"brown"},
+   {e:"path",d:"M150 108 C130 80 92 92 96 128 C98 150 112 158 112 168 C112 196 188 196 188 168 C188 158 202 150 204 128 C208 92 170 80 150 108 Z",c:"skin"},
+   {e:"circle",cx:128,cy:126,r:8,s:INK},{e:"circle",cx:172,cy:126,r:8,s:INK},
+   {e:"circle",cx:130,cy:123,r:2.6,s:"#fff","stroke-width":0},{e:"circle",cx:174,cy:123,r:2.6,s:"#fff","stroke-width":0},
+   {e:"path",d:"M143 152 h0 M157 152 h0",s:"none","stroke-width":6},
+   {e:"path",d:"M130 166 Q150 184 170 166",s:"none"},
+   {e:"ellipse",cx:202,cy:234,rx:15,ry:30,transform:"rotate(-50 202 234)",c:"brown"},
+   {e:"path",d:"M214 210 Q262 204 268 150 Q278 162 274 178 Q264 232 208 228 Z",c:"yellow"},
+   {e:"path",d:"M266 152 L270 138 L280 142 L274 156 Z",c:"brown"},
+   {e:"circle",cx:220,cy:218,r:13,c:"skin"}
+ ]},
+ /* ---------- Seviye 11 ---------- */
+ { name:"Kırmızı Çilek", shapes:[
+   {e:"rect",x:144,y:22,width:12,height:36,rx:6,c:"green"},
+   {e:"path",d:"M150 272 C88 242 48 172 68 122 C88 84 212 84 232 122 C252 172 212 242 150 272 Z",c:"red"},
+   {e:"path",d:"M150 112 L120 92 L92 102 L114 76 L102 56 L138 68 L150 46 L162 68 L198 56 L186 76 L208 102 L180 92 Z",c:"green"},
+   {e:"path",d:dots([[112,140],[188,140],[150,150],[98,186],[150,196],[202,186],[124,230],[176,230]],7,10),c:"yellow"}
+ ]},
+ /* ---------- Seviye 12 ---------- */
+ { name:"Sulu Karpuz", shapes:[
+   {e:"path",d:"M22 96 A128 128 0 0 0 278 96 Z",c:"green"},
+   {e:"path",d:"M44 96 A106 106 0 0 0 256 96 Z",c:"red"},
+   {e:"path",d:dots([[96,128],[150,124],[204,128],[122,166],[178,166],[150,202]],7,10),c:"black"}
+ ]},
+ /* ---------- Seviye 13 ---------- */
+ { name:"Gülen Dondurma", shapes:[
+   {e:"path",d:"M96 150 L204 150 L150 288 Z",c:"brown"},
+   {e:"path",d:"M112 178 L188 178 M124 208 L176 208 M136 238 L164 238 M120 160 L168 260 M180 160 L132 260",s:"none","stroke-width":4},
+   {e:"path",d:"M108 84 C98 20 202 20 192 84 Q180 100 165 88 Q150 102 135 88 Q120 100 108 84 Z",c:"pink"},
+   {e:"path",d:"M90 144 C78 66 222 66 210 144 Q196 164 180 148 Q165 168 150 150 Q135 168 120 148 Q104 164 90 144 Z",c:"blue"},
+   {e:"circle",cx:130,cy:114,r:7,s:INK},{e:"circle",cx:170,cy:114,r:7,s:INK},
+   {e:"path",d:"M134 128 Q150 142 166 128",s:"none"}
+ ]},
+ /* ---------- Seviye 14 ---------- */
+ { name:"Kırmızı Spor Araba", shapes:[
+   {e:"path",d:"M8 244 H292",s:"none"},
+   {e:"path",d:"M30 162 L22 136 H62 L58 146 H42 L46 160 Z",c:"black"},
+   {e:"path",d:"M24 204 L28 176 Q32 160 58 158 L104 152 L140 118 Q150 110 170 110 L210 112 Q228 114 240 134 L270 150 Q286 156 286 176 V200 Q286 212 272 212 H38 Q24 212 24 204 Z",c:"red"},
+   {e:"path",d:"M118 150 L146 124 Q152 120 165 120 L205 121 Q218 123 226 138 L230 150 Z",c:"sky"},
+   {e:"path",d:"M178 121 V150 M170 158 V204",s:"none"},
+   {e:"circle",cx:86,cy:212,r:30,c:"black"},{e:"circle",cx:228,cy:212,r:30,c:"black"},
+   {e:"circle",cx:86,cy:212,r:12,s:"#ddd"},{e:"circle",cx:228,cy:212,r:12,s:"#ddd"}
+ ]},
+ /* ---------- Seviye 15 ---------- */
+ { name:"Yelkenli Gemi", shapes:[
+   {e:"path",d:"M206 58 Q214 50 222 58 Q230 50 238 58 M240 84 Q246 78 252 84 Q258 78 264 84",s:"none","stroke-width":4},
+   {e:"rect",x:146,y:28,width:11,height:170,rx:4,c:"brown"},
+   {e:"path",d:"M140 44 L140 180 L58 180 Z",c:"white"},
+   {e:"path",d:"M163 60 L163 180 L228 180 Z",c:"white"},
+   {e:"path",d:"M46 190 H254 L226 244 H74 Z",c:"brown"},
+   {e:"circle",cx:110,cy:212,r:8,s:"#fff"},{e:"circle",cx:150,cy:212,r:8,s:"#fff"},{e:"circle",cx:190,cy:212,r:8,s:"#fff"},
+   {e:"path",d:"M4 238 Q28 222 52 238 Q76 254 100 238 Q124 222 148 238 Q172 254 196 238 Q220 222 244 238 Q268 254 296 238 V294 H4 Z",c:"blue"},
+   {e:"path",d:"M40 268 Q55 260 70 268 M130 276 Q145 268 160 276 M220 266 Q235 258 250 266",s:"none","stroke-width":4,stroke:"#fff"}
+ ]},
+ /* ---------- Seviye 16 ---------- */
+ { name:"Sarı Okul Otobüsü", shapes:[
+   {e:"path",d:"M6 242 H294",s:"none"},
+   {e:"path",d:"M18 200 V100 Q18 78 40 78 H248 Q268 78 274 98 L288 148 V200 Q288 212 276 212 H30 Q18 212 18 200 Z",c:"yellow"},
+   {e:"path",d:"M34 94 h40 v40 h-40 Z M84 94 h40 v40 h-40 Z M134 94 h40 v40 h-40 Z M184 94 h40 v40 h-40 Z M238 94 H258 L272 138 H238 Z",c:"sky"},
+   {e:"rect",x:18,y:152,width:270,height:12,c:"black"},
+   {e:"circle",cx:280,cy:182,r:7,s:"#fff","stroke-width":4},
+   {e:"path",d:"M231 170 V206",s:"none","stroke-width":4},
+   {e:"circle",cx:74,cy:212,r:28,c:"black"},{e:"circle",cx:228,cy:212,r:28,c:"black"},
+   {e:"circle",cx:74,cy:212,r:10,s:"#ddd"},{e:"circle",cx:228,cy:212,r:10,s:"#ddd"}
+ ]},
+ /* ---------- Seviye 17 ---------- */
+ { name:"Uçak & Bulut", shapes:[
+   {e:"rect",x:10,y:28,width:280,height:244,rx:30,c:"blue"},
+   {e:"path",d:"M196 72 Q200 54 220 60 Q236 46 252 62 Q270 62 268 78 Q266 88 252 88 H208 Q194 88 196 72 Z",c:"white"},
+   {e:"path",d:"M28 238 Q26 210 56 214 Q66 190 96 200 Q116 186 134 206 Q162 206 156 232 Q154 248 136 248 H44 Q28 248 28 238 Z",c:"white"},
+   {e:"path",d:"M150 136 L122 92 L144 90 L188 134 Z",c:"red"},
+   {e:"path",d:"M60 138 L46 98 L66 98 L88 136 Z",c:"red"},
+   {e:"path",d:"M52 140 Q52 128 72 128 H226 Q260 128 270 148 Q260 168 226 168 H72 Q52 168 52 156 Z",c:"white"},
+   {e:"path",d:"M238 136 Q256 138 263 148 H238 Z",c:"blue"},
+   {e:"path",d:dots([[112,146],[138,146],[164,146],[190,146]],6,6),c:"blue"},
+   {e:"path",d:"M142 156 L106 210 L130 212 L192 158 Z",c:"red"}
+ ]},
+ /* ---------- Seviye 18 ---------- */
+ { name:"Şirin Traktör", shapes:[
+   {e:"path",d:"M6 264 H294",s:"none"},
+   {e:"rect",x:232,y:76,width:12,height:54,rx:4,c:"black"},
+   {e:"path",d:"M56 190 V112 H138 V54 H212 V124 H266 Q278 124 278 136 V196 H56 Z",c:"green"},
+   {e:"rect",x:152,y:68,width:46,height:48,rx:6,s:"#DDF3FF"},
+   {e:"circle",cx:94,cy:206,r:58,c:"black"},
+   {e:"circle",cx:94,cy:206,r:26,c:"yellow"},{e:"circle",cx:94,cy:206,r:7,s:INK},
+   {e:"circle",cx:232,cy:228,r:36,c:"black"},
+   {e:"circle",cx:232,cy:228,r:15,c:"yellow"},{e:"circle",cx:232,cy:228,r:5,s:INK}
+ ]},
+ /* ---------- Seviye 19 ---------- */
+ { name:"Buharlı Tren", shapes:[
+   {e:"path",d:"M4 250 H296",s:"none"},
+   {e:"circle",cx:80,cy:40,r:12,s:"none","stroke-width":4},{e:"circle",cx:104,cy:24,r:9,s:"none","stroke-width":4},{e:"circle",cx:126,cy:14,r:6,s:"none","stroke-width":4},
+   {e:"path",d:"M76 122 V80 H68 V60 H112 V80 H104 V122 Z",c:"red"},
+   {e:"rect",x:160,y:66,width:116,height:22,rx:6,c:"yellow"},
+   {e:"rect",x:170,y:86,width:96,height:116,rx:6,c:"blue"},
+   {e:"rect",x:188,y:102,width:58,height:44,rx:6,s:"#DDF3FF"},
+   {e:"path",d:"M58 120 H176 V202 H58 Q36 161 58 120 Z",c:"blue"},
+   {e:"path",d:"M100 120 h14 v82 h-14 Z M138 120 h14 v82 h-14 Z",c:"yellow"},
+   {e:"circle",cx:46,cy:150,r:10,c:"yellow"},
+   {e:"rect",x:36,y:200,width:240,height:14,rx:4,s:INK},
+   {e:"circle",cx:84,cy:224,r:22,c:"red"},{e:"circle",cx:140,cy:224,r:22,c:"red"},{e:"circle",cx:222,cy:220,r:28,c:"red"},
+   {e:"circle",cx:84,cy:224,r:7,s:"#ddd"},{e:"circle",cx:140,cy:224,r:7,s:"#ddd"},{e:"circle",cx:222,cy:220,r:9,s:"#ddd"}
+ ]},
+ /* ---------- Seviye 20 ---------- */
+ { name:"Helikopter", shapes:[
+   {e:"rect",x:142,y:56,width:16,height:30,rx:4,c:"black"},
+   {e:"rect",x:36,y:46,width:228,height:12,rx:6,c:"black"},
+   {e:"path",d:"M186 140 L270 124 L272 144 L190 170 Z",c:"orange"},
+   {e:"ellipse",cx:276,cy:124,rx:8,ry:26,c:"black"},
+   {e:"path",d:"M104 206 V226 M176 206 V226",s:"none","stroke-width":6},
+   {e:"rect",x:70,y:222,width:150,height:12,rx:6,c:"black"},
+   {e:"ellipse",cx:138,cy:148,rx:84,ry:64,c:"orange"},
+   {e:"path",d:"M58 156 Q58 104 122 96 L122 156 Z",c:"sky"},
+   {e:"path",d:"M150 112 h40 v30 h-40 Z",c:"sky"}
+ ]},
+ /* ---------- Seviye 21 ---------- */
+ { name:"Gülen Güneş", shapes:[
+   ...rays(150,150,82,138,8,14,"orange"),
+   {e:"circle",cx:150,cy:150,r:76,c:"yellow"},
+   {e:"circle",cx:124,cy:136,r:8,s:INK},{e:"circle",cx:176,cy:136,r:8,s:INK},
+   {e:"circle",cx:126,cy:133,r:2.6,s:"#fff","stroke-width":0},{e:"circle",cx:178,cy:133,r:2.6,s:"#fff","stroke-width":0},
+   {e:"ellipse",cx:104,cy:166,rx:13,ry:8,c:"orange"},{e:"ellipse",cx:196,cy:166,rx:13,ry:8,c:"orange"},
+   {e:"path",d:"M124 170 Q150 196 176 170",s:"none"}
+ ]},
+ /* ---------- Seviye 22 ---------- */
+ { name:"Gökkuşağı", shapes:[
+   band(150,214,132,106,"red"),
+   band(150,214,106,80,"yellow"),
+   band(150,214,80,54,"blue"),
+   {e:"path",d:"M8 238 Q6 212 32 214 Q38 190 64 198 Q84 186 96 208 Q116 212 110 234 Q108 248 90 248 H22 Q8 248 8 238 Z",c:"white"},
+   {e:"path",d:"M190 238 Q188 212 214 214 Q220 190 246 198 Q266 186 278 208 Q298 212 292 234 Q290 248 272 248 H204 Q190 248 190 238 Z",c:"white"}
+ ]},
+ /* ---------- Seviye 23 ---------- */
+ { name:"Papatya", shapes:[
+   {e:"path",d:"M144 170 Q138 232 146 292 L158 292 Q150 232 158 170 Z",c:"green"},
+   {e:"path",d:"M148 246 Q100 228 88 194 Q130 198 150 236 Z",c:"green"},
+   {e:"path",d:"M154 226 Q196 196 222 206 Q202 244 154 240 Z",c:"green"},
+   ...petals(150,112,8,48,19,36,"white"),
+   {e:"circle",cx:150,cy:112,r:32,c:"yellow"},
+   {e:"circle",cx:140,cy:106,r:4.5,s:INK},{e:"circle",cx:160,cy:106,r:4.5,s:INK},
+   {e:"path",d:"M140 120 Q150 128 160 120",s:"none","stroke-width":4}
+ ]},
+ /* ---------- Seviye 24 ---------- */
+ { name:"Hilal Ay Dede", shapes:[
+   {e:"rect",x:10,y:10,width:280,height:280,rx:34,c:"navy"},
+   {e:"path",d:"M176 60 A95 95 0 1 0 176 240 A90 90 0 0 1 176 60 Z",c:"yellow"},
+   {e:"path",d:"M72 140 Q82 132 92 140",s:"none","stroke-width":4},
+   {e:"path",d:"M76 178 Q90 190 104 176",s:"none","stroke-width":4},
+   {e:"ellipse",cx:70,cy:162,rx:9,ry:6,s:"#FFB3A0","stroke-width":0},
+   {e:"path",d:star(232,82,26),c:"white"},
+   {e:"path",d:star(246,184,19),c:"white"},
+   {e:"path",d:star(206,252,15),c:"white"}
+ ]},
+ /* ---------- Seviye 25 ---------- */
+ { name:"Mantar Evi", shapes:[
+   {e:"path",d:"M10 280 H290",s:"none"},
+   {e:"path",d:"M96 150 L90 268 Q90 280 102 280 H198 Q210 280 210 268 L204 150 Z",c:"white"},
+   {e:"path",d:"M28 160 Q38 38 150 34 Q262 38 272 160 Q150 186 28 160 Z",c:"red"},
+   {e:"path",d:dots([[92,108],[150,70],[208,108],[150,136]],17,12),c:"white"},
+   {e:"path",d:"M128 280 V232 Q150 202 172 232 V280 Z",c:"yellow"},
+   {e:"circle",cx:162,cy:256,r:4,s:INK},
+   {e:"path",d:dots([[114,198],[186,198]],12,12),c:"yellow"}
+ ]},
+ /* ---------- Seviye 26 ---------- */
+ { name:"Mavi Balina", shapes:[
+   {e:"path",d:"M150 100 Q140 62 110 52 Q132 44 150 70 Q168 44 190 52 Q160 62 150 100 Z",c:"navy"},
+   {e:"path",d:"M232 172 Q262 150 282 110 Q292 140 272 162 Q294 178 288 204 Q262 188 232 198 Z",c:"sky"},
+   {e:"path",d:"M38 182 Q38 100 140 100 Q232 100 250 182 Q250 232 150 234 Q38 234 38 182 Z",c:"sky"},
+   {e:"path",d:"M46 198 Q60 230 150 232 Q236 230 248 198 Q150 222 46 198 Z",c:"white"},
+   {e:"path",d:"M138 196 Q148 230 180 232 Q170 214 168 196 Z",c:"sky"},
+   {e:"circle",cx:88,cy:158,r:8,s:INK},{e:"circle",cx:90,cy:155,r:2.6,s:"#fff","stroke-width":0},
+   {e:"path",d:"M66 184 Q88 198 112 188",s:"none"},
+   {e:"path",d:"M4 254 Q30 240 56 254 Q82 268 108 254 Q134 240 160 254 Q186 268 212 254 Q238 240 264 254 Q282 264 296 254 V294 H4 Z",c:"navy"}
+ ]},
+ /* ---------- Seviye 27 ---------- */
+ { name:"Sevimli Fil", shapes:[
+   {e:"path",d:"M212 230 Q236 236 236 258",s:"none","stroke-width":5},
+   {e:"rect",x:98,y:240,width:32,height:48,rx:9,c:"gray"},{e:"rect",x:170,y:240,width:32,height:48,rx:9,c:"gray"},
+   {e:"ellipse",cx:150,cy:222,rx:74,ry:46,c:"gray"},
+   {e:"ellipse",cx:78,cy:122,rx:48,ry:58,c:"gray"},{e:"ellipse",cx:222,cy:122,rx:48,ry:58,c:"gray"},
+   {e:"ellipse",cx:80,cy:126,rx:30,ry:40,c:"pink"},{e:"ellipse",cx:220,cy:126,rx:30,ry:40,c:"pink"},
+   {e:"circle",cx:150,cy:126,r:62,c:"gray"},
+   {e:"path",d:"M134 158 Q126 210 150 238 Q168 256 188 240 Q172 234 168 222 Q158 200 166 158 Z",c:"gray"},
+   {e:"circle",cx:126,cy:116,r:7,s:INK},{e:"circle",cx:174,cy:116,r:7,s:INK},
+   {e:"circle",cx:128,cy:113,r:2.4,s:"#fff","stroke-width":0},{e:"circle",cx:176,cy:113,r:2.4,s:"#fff","stroke-width":0},
+   {e:"path",d:dots([[110,150],[190,150]],11,7),c:"pink"}
+ ]},
+ /* ---------- Seviye 28 ---------- */
+ { name:"Renkli Kelebek", shapes:[
+   {e:"path",d:"M142 72 Q130 40 110 34 M158 72 Q170 40 190 34",s:"none","stroke-width":4},
+   {e:"circle",cx:108,cy:32,r:8,c:"purple"},{e:"circle",cx:192,cy:32,r:8,c:"purple"},
+   {e:"path",d:"M146 140 Q90 40 38 72 Q18 122 70 152 Q110 162 146 152 Z",c:"pink"},
+   {e:"path",d:"M154 140 Q210 40 262 72 Q282 122 230 152 Q190 162 154 152 Z",c:"pink"},
+   {e:"path",d:"M146 160 Q90 162 70 202 Q70 252 110 248 Q140 238 146 182 Z",c:"yellow"},
+   {e:"path",d:"M154 160 Q210 162 230 202 Q230 252 190 248 Q160 238 154 182 Z",c:"yellow"},
+   {e:"path",d:dots([[86,108],[214,108]],17,15),c:"yellow"},
+   {e:"path",d:dots([[106,212],[194,212]],12,12),c:"pink"},
+   {e:"ellipse",cx:150,cy:168,rx:14,ry:72,c:"purple"},
+   {e:"circle",cx:150,cy:88,r:21,c:"purple"},
+   {e:"circle",cx:143,cy:86,r:3.5,s:INK},{e:"circle",cx:157,cy:86,r:3.5,s:INK},
+   {e:"path",d:"M144 95 Q150 100 156 95",s:"none","stroke-width":3}
+ ]},
+ /* ---------- Seviye 29 ---------- */
+ { name:"Denizyıldızı", shapes:[
+   {e:"path",d:star(150,160,130,60),c:"orange","stroke-width":7},
+   {e:"path",d:dots([[150,72],[233,132],[202,230],[98,230],[67,132]],10,10),c:"pink"},
+   {e:"circle",cx:134,cy:152,r:7,s:INK},{e:"circle",cx:166,cy:152,r:7,s:INK},
+   {e:"circle",cx:136,cy:149,r:2.4,s:"#fff","stroke-width":0},{e:"circle",cx:168,cy:149,r:2.4,s:"#fff","stroke-width":0},
+   {e:"path",d:dots([[118,172],[182,172]],9,6),c:"pink"},
+   {e:"path",d:"M138 176 Q150 188 162 176",s:"none","stroke-width":4}
+ ]},
+ /* ---------- Seviye 30 ---------- */
+ { name:"Minik Penguen", shapes:[
+   {e:"ellipse",cx:120,cy:272,rx:28,ry:13,c:"orange"},{e:"ellipse",cx:180,cy:272,rx:28,ry:13,c:"orange"},
+   {e:"path",d:"M150 40 Q240 40 236 176 Q232 266 150 266 Q68 266 64 176 Q60 40 150 40 Z",c:"black"},
+   {e:"ellipse",cx:66,cy:182,rx:18,ry:50,transform:"rotate(18 66 182)",c:"black"},
+   {e:"ellipse",cx:234,cy:182,rx:18,ry:50,transform:"rotate(-18 234 182)",c:"black"},
+   {e:"path",d:"M150 92 Q208 92 208 176 Q208 252 150 252 Q92 252 92 176 Q92 92 150 92 Z",c:"white"},
+   {e:"circle",cx:130,cy:130,r:8,s:INK},{e:"circle",cx:170,cy:130,r:8,s:INK},
+   {e:"circle",cx:132,cy:127,r:2.6,s:"#fff","stroke-width":0},{e:"circle",cx:172,cy:127,r:2.6,s:"#fff","stroke-width":0},
+   {e:"ellipse",cx:114,cy:150,rx:9,ry:6,s:"#FFB3C1","stroke-width":0},{e:"ellipse",cx:186,cy:150,rx:9,ry:6,s:"#FFB3C1","stroke-width":0},
+   {e:"path",d:"M134 146 L166 146 L150 166 Z",c:"orange"}
+ ]},
+ /* ---------- Seviye 31 ---------- */
+ { name:"Sevimli Yengeç", shapes:[
+   {e:"path",d:"M82 190 L36 176 L32 188 L78 204 Z M80 212 L32 216 L34 228 L82 224 Z M86 230 L46 254 L54 264 L92 242 Z",c:"red"},
+   {e:"path",d:"M218 190 L264 176 L268 188 L222 204 Z M220 212 L268 216 L266 228 L218 224 Z M214 230 L254 254 L246 264 L208 242 Z",c:"red"},
+   {e:"path",d:"M98 170 L62 130 L74 120 L108 160 Z",c:"red"},
+   {e:"path",d:"M202 170 L238 130 L226 120 L192 160 Z",c:"red"},
+   {e:"path",d:"M68 128 Q22 122 28 76 Q34 48 62 52 L58 84 L80 80 Q92 114 68 128 Z",c:"red"},
+   {e:"path",d:"M232 128 Q278 122 272 76 Q266 48 238 52 L242 84 L220 80 Q208 114 232 128 Z",c:"red"},
+   {e:"path",d:"M128 156 V112 M172 156 V112",s:"none","stroke-width":6},
+   {e:"ellipse",cx:150,cy:200,rx:82,ry:58,c:"red"},
+   {e:"circle",cx:128,cy:104,r:15,c:"black"},{e:"circle",cx:172,cy:104,r:15,c:"black"},
+   {e:"circle",cx:132,cy:99,r:4.5,s:"#fff","stroke-width":0},{e:"circle",cx:176,cy:99,r:4.5,s:"#fff","stroke-width":0},
+   {e:"path",d:"M128 210 Q150 228 172 210",s:"none"}
+ ]},
+ /* ---------- Seviye 32 ---------- */
+ { name:"Tembel Salyangoz", shapes:[
+   {e:"path",d:"M10 262 H290",s:"none"},
+   {e:"path",d:"M238 114 L222 74 M262 116 L272 74",s:"none","stroke-width":5},
+   {e:"circle",cx:222,cy:70,r:9,c:"lime"},{e:"circle",cx:272,cy:70,r:9,c:"lime"},
+   {e:"path",d:"M28 250 Q28 232 58 232 H200 Q214 200 216 150 Q218 112 246 112 Q278 112 278 150 Q278 200 252 236 Q244 258 220 258 H42 Q28 258 28 250 Z",c:"lime"},
+   {e:"circle",cx:128,cy:168,r:72,c:"brown"},
+   {e:"path",d:"M128 168 a8 8 0 0 1 16 0 a16 16 0 0 1 -32 0 a24 24 0 0 1 48 0 a32 32 0 0 1 -64 0 a40 40 0 0 1 80 0 a48 48 0 0 1 -96 0",s:"none"},
+   {e:"path",d:"M236 142 Q244 148 252 142",s:"none","stroke-width":4},
+   {e:"path",d:"M238 168 Q250 176 262 166",s:"none","stroke-width":4},
+   {e:"ellipse",cx:262,cy:152,rx:7,ry:5,s:"#FFB3C1","stroke-width":0}
+ ]},
+ /* ---------- Seviye 33 ---------- */
+ { name:"Neşeli Köpekçik", shapes:[
+   {e:"path",d:"M208 222 Q250 204 252 168 Q264 180 260 202 Q252 234 214 242 Z",c:"brown"},
+   {e:"ellipse",cx:150,cy:234,rx:64,ry:46,c:"brown"},
+   {e:"ellipse",cx:116,cy:274,rx:24,ry:12,c:"brown"},{e:"ellipse",cx:184,cy:274,rx:24,ry:12,c:"brown"},
+   {e:"circle",cx:150,cy:126,r:62,c:"brown"},
+   {e:"path",d:"M98 184 Q150 206 202 184 L202 200 Q150 224 98 200 Z",c:"red"},
+   {e:"circle",cx:150,cy:216,r:9,s:"#FFD93B"},
+   {e:"ellipse",cx:92,cy:126,rx:22,ry:50,transform:"rotate(14 92 126)",c:"dkbrown"},
+   {e:"ellipse",cx:208,cy:126,rx:22,ry:50,transform:"rotate(-14 208 126)",c:"dkbrown"},
+   {e:"ellipse",cx:174,cy:110,rx:20,ry:18,c:"dkbrown"},
+   {e:"ellipse",cx:150,cy:152,rx:30,ry:21,s:"#fff"},
+   {e:"circle",cx:128,cy:112,r:8,s:INK},{e:"circle",cx:174,cy:112,r:8,s:INK},
+   {e:"circle",cx:130,cy:109,r:2.6,s:"#fff","stroke-width":0},{e:"circle",cx:176,cy:109,r:2.6,s:"#fff","stroke-width":0},
+   {e:"ellipse",cx:150,cy:142,rx:10,ry:7,s:INK},
+   {e:"path",d:"M144 160 Q150 176 156 160 Z",s:"#FF8FB8","stroke-width":3},
+   {e:"path",d:"M150 149 V158 M138 158 Q150 166 162 158",s:"none","stroke-width":4}
+ ]},
+ /* ---------- Seviye 34 ---------- */
+ { name:"Beyaz Kedi & Yumak", shapes:[
+   {e:"path",d:"M198 250 Q262 252 254 190 Q252 170 268 168 Q278 180 270 198 Q272 266 204 270 Z",c:"white"},
+   {e:"ellipse",cx:150,cy:232,rx:58,ry:48,c:"white"},
+   {e:"ellipse",cx:128,cy:276,rx:18,ry:10,c:"white"},{e:"ellipse",cx:172,cy:276,rx:18,ry:10,c:"white"},
+   {e:"path",d:"M90 112 L94 46 L138 82 Z",c:"white"},{e:"path",d:"M210 112 L206 46 L162 82 Z",c:"white"},
+   {e:"path",d:"M100 98 L102 64 L124 84 Z",c:"pink"},{e:"path",d:"M200 98 L198 64 L176 84 Z",c:"pink"},
+   {e:"ellipse",cx:150,cy:130,rx:68,ry:58,c:"white"},
+   {e:"circle",cx:126,cy:122,r:8,s:INK},{e:"circle",cx:174,cy:122,r:8,s:INK},
+   {e:"circle",cx:128,cy:119,r:2.6,s:"#fff","stroke-width":0},{e:"circle",cx:176,cy:119,r:2.6,s:"#fff","stroke-width":0},
+   {e:"path",d:"M141 140 L159 140 L150 150 Z",c:"pink"},
+   {e:"path",d:"M150 150 V156 M140 160 Q145 165 150 156 Q155 165 160 160",s:"none","stroke-width":4},
+   {e:"path",d:"M118 146 H86 M118 154 L88 162 M182 146 H214 M182 154 L212 162",s:"none","stroke-width":3},
+   {e:"circle",cx:60,cy:250,r:36,c:"blue"},
+   {e:"path",d:"M34 236 Q60 252 86 236 M28 258 Q60 274 92 258 M48 218 Q72 248 62 286",s:"none","stroke-width":4},
+   {e:"path",d:"M94 262 Q116 282 106 292",s:"none","stroke-width":4}
+ ]},
+ /* ---------- Seviye 35 ---------- */
+ { name:"Gülen Ahtapot", shapes:[
+   ...[74,112,150,188,226].map(x => ({e:"path",
+      d:`M${x-15} 168 Q${x-26} 228 ${x-6} 262 Q${x+10} 284 ${x+20} 262 Q${x+2} 228 ${x+15} 168 Z`, c:"purple"})),
+   {e:"path",d:dots([74,112,150,188,226].flatMap(x=>[[x-4,214],[x+1,240]]),5,5),c:"pink"},
+   {e:"path",d:"M58 182 Q48 48 150 44 Q252 48 242 182 Q150 202 58 182 Z",c:"purple"},
+   {e:"circle",cx:120,cy:126,r:18,s:"#fff"},{e:"circle",cx:180,cy:126,r:18,s:"#fff"},
+   {e:"circle",cx:123,cy:130,r:8,s:INK},{e:"circle",cx:177,cy:130,r:8,s:INK},
+   {e:"path",d:dots([[96,160],[204,160]],14,9),c:"pink"},
+   {e:"path",d:"M128 162 Q150 182 172 162",s:"none"},
+   {e:"path",d:dots([[150,82],[118,90],[184,92]],7,6),c:"pink"}
+ ]},
+ /* ---------- Seviye 36 ---------- */
+ { name:"Sarı Muz", shapes:[
+   {e:"path",d:"M66 84 L58 50 L84 44 L96 80 Z",c:"brown"},
+   {e:"path",d:"M252 232 L274 238 L272 220 L262 220 Z",c:"brown"},
+   {e:"path",d:"M66 84 Q50 238 252 232 L262 220 Q120 206 96 80 Z",c:"yellow"},
+   {e:"path",d:"M84 110 Q86 180 150 206",s:"none","stroke-width":4},
+   {e:"circle",cx:112,cy:178,r:5,s:INK},{e:"circle",cx:136,cy:186,r:5,s:INK},
+   {e:"path",d:"M114 196 Q124 206 136 202",s:"none","stroke-width":4}
+ ]},
+ /* ---------- Seviye 37 ---------- */
+ { name:"Portakal Dilimi", shapes:[
+   {e:"path",d:"M18 92 A132 132 0 0 0 282 92 Z",c:"orange"},
+   {e:"path",d:"M38 92 A112 112 0 0 0 262 92 Z",c:"white"},
+   ...[0,1,2,3,4].map(i => wedge(150,92,98,i*36+5,i*36+31,"orange")),
+   {e:"circle",cx:150,cy:92,r:7,s:"#fff","stroke-width":4}
+ ]},
+ /* ---------- Seviye 38 ---------- */
+ { name:"Mor Üzüm Salkımı", shapes:[
+   {e:"path",d:"M144 30 Q150 50 148 76 L160 76 Q162 50 156 30 Z",c:"brown"},
+   {e:"path",d:"M158 62 Q202 30 244 50 Q222 94 162 82 Z",c:"green"},
+   {e:"path",d:"M168 70 Q200 58 226 56",s:"none","stroke-width":4},
+   {e:"circle",cx:150,cy:246,r:25,c:"purple"},
+   {e:"circle",cx:126,cy:206,r:25,c:"purple"},{e:"circle",cx:174,cy:206,r:25,c:"purple"},
+   {e:"circle",cx:103,cy:164,r:25,c:"purple"},{e:"circle",cx:150,cy:164,r:25,c:"purple"},{e:"circle",cx:197,cy:164,r:25,c:"purple"},
+   {e:"circle",cx:80,cy:120,r:25,c:"purple"},{e:"circle",cx:127,cy:120,r:25,c:"purple"},{e:"circle",cx:173,cy:120,r:25,c:"purple"},{e:"circle",cx:220,cy:120,r:25,c:"purple"},
+   {e:"path",d:dots([[150,246],[126,206],[174,206],[103,164],[150,164],[197,164],[80,120],[127,120],[173,120],[220,120]].map(([x,y])=>[x-9,y-9]),4,4),s:"#fff","stroke-width":0}
+ ]},
+ /* ---------- Seviye 39 ---------- */
+ { name:"Ananas", shapes:[
+   {e:"path",d:"M130 128 L64 88 L144 118 Z",c:"green"},
+   {e:"path",d:"M170 128 L236 88 L156 118 Z",c:"green"},
+   {e:"path",d:"M134 124 L94 42 L154 114 Z",c:"green"},
+   {e:"path",d:"M166 124 L206 42 L146 114 Z",c:"green"},
+   {e:"path",d:"M136 124 L150 20 L164 124 Z",c:"green"},
+   {e:"ellipse",cx:150,cy:202,rx:74,ry:86,c:"yellow"},
+   {e:"path",d:lattice(150,202,74,86,34),s:"none","stroke-width":4}
+ ]},
+ /* ---------- Seviye 40 ---------- */
+ { name:"Doğum Günü Pastası", shapes:[
+   {e:"path",d:"M30 268 H270",s:"none"},
+   {e:"rect",x:140,y:84,width:20,height:52,rx:5,s:"#fff"},
+   {e:"path",d:"M140 98 L160 92 M140 114 L160 108 M140 130 L160 124",s:"none","stroke-width":3},
+   {e:"path",d:"M150 34 Q168 56 160 70 Q150 80 140 70 Q132 56 150 34 Z",c:"red"},
+   {e:"rect",x:58,y:150,width:184,height:112,rx:10,c:"yellow"},
+   {e:"rect",x:58,y:206,width:184,height:16,c:"pink"},
+   {e:"path",d:"M54 150 Q54 132 74 132 H226 Q246 132 246 150 V168 Q234 186 220 168 Q206 192 192 168 Q178 186 164 168 Q150 192 136 168 Q122 186 108 168 Q94 192 80 168 Q66 186 54 168 Z",c:"pink"}
+ ]},
+ /* ---------- Seviye 41 ---------- */
+ { name:"Renkli Uçurtma", shapes:[
+   {e:"path",d:"M150 236 Q118 256 150 272 Q182 288 142 298",s:"none","stroke-width":4},
+   {e:"path",d:"M150 22 L58 112 L150 112 Z",c:"red"},
+   {e:"path",d:"M150 22 L242 112 L150 112 Z",c:"blue"},
+   {e:"path",d:"M58 112 L150 236 L150 112 Z",c:"yellow"},
+   {e:"path",d:"M242 112 L150 236 L150 112 Z",c:"green"}
+ ]},
+ /* ---------- Seviye 42 ---------- */
+ { name:"Oyuncak Ayıcık", shapes:[
+   {e:"circle",cx:90,cy:72,r:28,c:"tan"},{e:"circle",cx:210,cy:72,r:28,c:"tan"},
+   {e:"circle",cx:90,cy:72,r:14,c:"dkbrown"},{e:"circle",cx:210,cy:72,r:14,c:"dkbrown"},
+   {e:"ellipse",cx:84,cy:204,rx:20,ry:36,transform:"rotate(30 84 204)",c:"tan"},
+   {e:"ellipse",cx:216,cy:204,rx:20,ry:36,transform:"rotate(-30 216 204)",c:"tan"},
+   {e:"ellipse",cx:150,cy:222,rx:66,ry:58,c:"tan"},
+   {e:"ellipse",cx:150,cy:230,rx:34,ry:32,s:"#F6DDBB"},
+   {e:"ellipse",cx:104,cy:270,rx:30,ry:22,c:"tan"},{e:"ellipse",cx:196,cy:270,rx:30,ry:22,c:"tan"},
+   {e:"path",d:dots([[104,272],[196,272]],12,10),c:"dkbrown"},
+   {e:"circle",cx:150,cy:118,r:64,c:"tan"},
+   {e:"ellipse",cx:150,cy:144,rx:30,ry:22,s:"#F6DDBB"},
+   {e:"ellipse",cx:150,cy:134,rx:12,ry:9,c:"dkbrown"},
+   {e:"circle",cx:126,cy:108,r:8,s:INK},{e:"circle",cx:174,cy:108,r:8,s:INK},
+   {e:"circle",cx:128,cy:105,r:2.6,s:"#fff","stroke-width":0},{e:"circle",cx:176,cy:105,r:2.6,s:"#fff","stroke-width":0},
+   {e:"path",d:"M150 143 V152 M140 154 Q150 162 160 154",s:"none","stroke-width":4}
+ ]},
+ /* ---------- Seviye 43 ---------- */
+ { name:"Renkli Balonlar", shapes:[
+   {e:"path",d:"M86 160 Q120 220 150 284 M150 140 Q146 210 150 284 M214 160 Q180 220 150 284",s:"none","stroke-width":3},
+   {e:"path",d:"M80 156 L92 156 L86 166 Z M208 156 L220 156 L214 166 Z M144 136 L156 136 L150 146 Z",s:INK,"stroke-width":3},
+   {e:"ellipse",cx:86,cy:104,rx:46,ry:54,c:"red"},
+   {e:"ellipse",cx:214,cy:104,rx:46,ry:54,c:"blue"},
+   {e:"ellipse",cx:150,cy:84,rx:46,ry:54,c:"yellow"},
+   {e:"path",d:"M62 80 Q66 64 80 58 M190 80 Q194 64 208 58 M126 60 Q130 44 144 38",s:"none","stroke-width":5,stroke:"#fff"},
+   {e:"path",d:"M136 284 L150 276 L164 284 L150 292 Z",s:"none","stroke-width":4}
+ ]},
+ /* ---------- Seviye 44 ---------- */
+ { name:"Deniz Topu", shapes:[
+   ...["red","white","blue","red","white","blue"].map((c,i) => wedge(150,150,124,i*60-90,i*60-30,c)),
+   {e:"circle",cx:150,cy:150,r:18,s:"#fff"},
+   {e:"path",d:"M74 104 Q88 72 120 56",s:"none","stroke-width":6,stroke:"#fff"}
+ ]},
+ /* ---------- Seviye 45 ---------- */
+ { name:"Hediye Paketi", shapes:[
+   {e:"path",d:"M150 104 Q98 46 88 80 Q84 106 150 104 Z",c:"yellow"},
+   {e:"path",d:"M150 104 Q202 46 212 80 Q216 106 150 104 Z",c:"yellow"},
+   {e:"rect",x:62,y:136,width:176,height:140,rx:8,c:"blue"},
+   {e:"rect",x:46,y:104,width:208,height:42,rx:8,c:"blue"},
+   {e:"rect",x:62,y:190,width:176,height:24,c:"yellow"},
+   {e:"rect",x:136,y:104,width:28,height:172,c:"yellow"},
+   {e:"circle",cx:150,cy:102,r:14,c:"yellow"}
+ ]},
+ /* ---------- Seviye 46 ---------- */
+ { name:"Şirin Çalar Saat", shapes:[
+   {e:"path",d:"M150 70 V44 M136 40 H164",s:"none","stroke-width":7},
+   {e:"circle",cx:86,cy:72,r:32,c:"yellow"},{e:"circle",cx:214,cy:72,r:32,c:"yellow"},
+   {e:"path",d:"M94 238 L70 280 H94 L116 248 Z",c:"red"},
+   {e:"path",d:"M206 238 L230 280 H206 L184 248 Z",c:"red"},
+   {e:"circle",cx:150,cy:162,r:98,c:"red"},
+   {e:"circle",cx:150,cy:162,r:76,c:"white"},
+   {e:"path",d:dots([[150,100],[212,162],[150,224],[88,162]],5,5),s:INK,"stroke-width":0},
+   {e:"path",d:"M150 162 V118 M150 162 L184 180",s:"none","stroke-width":7},
+   {e:"circle",cx:150,cy:162,r:7,s:INK}
+ ]},
+ /* ---------- Seviye 47 ---------- */
+ { name:"Biberon", shapes:[
+   {e:"path",d:"M118 94 Q116 44 150 28 Q184 44 182 94 Z",s:"#FFE1BF"},
+   {e:"rect",x:94,y:90,width:112,height:34,rx:9,c:"sky"},
+   {e:"path",d:"M102 124 H198 Q214 124 214 142 V262 Q214 286 190 286 H110 Q86 286 86 262 V142 Q86 124 102 124 Z",c:"white"},
+   {e:"path",d:"M186 160 h20 M194 186 h12 M186 212 h20 M194 238 h12",s:"none","stroke-width":4},
+   {e:"circle",cx:126,cy:190,r:6,s:INK},{e:"circle",cx:160,cy:190,r:6,s:INK},
+   {e:"path",d:"M130 210 Q143 222 156 210",s:"none","stroke-width":4},
+   {e:"ellipse",cx:112,cy:206,rx:8,ry:5,s:"#FFB3C1","stroke-width":0},{e:"ellipse",cx:174,cy:206,rx:8,ry:5,s:"#FFB3C1","stroke-width":0}
+ ]},
+ /* ---------- Seviye 48 ---------- */
+ { name:"Sevimli Roket", shapes:[
+   {e:"path",d:"M126 240 Q128 282 150 298 Q172 282 174 240 Z",c:"orange"},
+   {e:"path",d:"M114 168 L64 232 L114 232 Z",c:"red"},
+   {e:"path",d:"M186 168 L236 232 L186 232 Z",c:"red"},
+   {e:"path",d:"M112 236 V120 Q112 102.1 116.9 86 H183.1 Q188 102.1 188 120 V236 Z",c:"white"},
+   {e:"path",d:"M116.9 86 Q125.6 57.1 150 34 Q174.4 57.1 183.1 86 Z",c:"red"},
+   {e:"rect",x:120,y:232,width:60,height:16,rx:5,c:"red"},
+   {e:"circle",cx:150,cy:142,r:22,s:"#BFE9FF","stroke-width":6},
+   {e:"path",d:"M140 136 Q146 130 152 132",s:"none","stroke-width":3,stroke:"#fff"}
+ ]},
+ /* ---------- Seviye 49 ---------- */
+ { name:"Boya Kalemleri", shapes:
+   [[54,"red",20],[128,"green",0],[202,"blue",20]].flatMap(([x,c,dy]) => [
+     {e:"path",d:`M${x} 276 V${110+dy} H${x+44} V276 Z`,c},
+     {e:"path",d:`M${x} ${110+dy} L${x+22} ${50+dy} L${x+44} ${110+dy} Z`,s:"#F5D7A8"},
+     {e:"path",d:`M${x+14} ${72+dy} L${x+22} ${50+dy} L${x+30} ${72+dy} Z`,c},
+     {e:"path",d:`M${x} ${136+dy} H${x+44} M${x} 250 H${x+44}`,s:"none","stroke-width":4}
+   ])
+ },
+ /* ---------- Seviye 50 ---------- */
+ { name:"Panda Şampiyonluk Kupası", shapes:[
+   {e:"path",d:"M100 222 h100 v22 h-100 Z M80 244 h140 v34 h-140 Z",c:"green"},
+   {e:"path",d:"M136 222 L142 184 H158 L164 222 Z",c:"yellow"},
+   {e:"path",d:"M84 86 Q36 86 40 124 Q46 162 104 170 L108 152 Q64 146 60 124 Q58 104 86 106 Z",c:"red"},
+   {e:"path",d:"M216 86 Q264 86 260 124 Q254 162 196 170 L192 152 Q236 146 240 124 Q242 104 214 106 Z",c:"red"},
+   {e:"path",d:"M78 66 H222 Q222 180 150 190 Q78 180 78 66 Z",c:"yellow"},
+   {e:"circle",cx:128,cy:100,r:10,s:INK},{e:"circle",cx:172,cy:100,r:10,s:INK},
+   {e:"circle",cx:150,cy:122,r:27,s:"#fff","stroke-width":4},
+   {e:"ellipse",cx:139,cy:118,rx:7,ry:9,transform:"rotate(15 139 118)",s:INK,"stroke-width":0},
+   {e:"ellipse",cx:161,cy:118,rx:7,ry:9,transform:"rotate(-15 161 118)",s:INK,"stroke-width":0},
+   {e:"circle",cx:140,cy:117,r:2.4,s:"#fff","stroke-width":0},{e:"circle",cx:160,cy:117,r:2.4,s:"#fff","stroke-width":0},
+   {e:"ellipse",cx:150,cy:130,rx:5,ry:3.5,s:INK,"stroke-width":0},
+   {e:"path",d:"M144 137 Q150 142 156 137",s:"none","stroke-width":3},
+   {e:"path",d:star(150,261,11),s:"#fff","stroke-width":3},
+   {e:"path",d:star(60,40,12)+star(244,40,12),s:"#FFD93B","stroke-width":3}
+ ]}
+];
+
+/* All 50 levels have their own drawing. (Fallback colour variants below only kick in
+   if TOTAL_LEVELS is ever raised above DRAWINGS.length.) */
+const SIMILAR = {green:["lime","dkgreen"], orange:["skin"], blue:["sky","navy"]}; // keep confusable distractors out
+function getLevel(n){
+  const i = n-1, d = DRAWINGS[i % DRAWINGS.length], v = Math.floor(i / DRAWINGS.length);
+  const map = k => {
+    if (v===0 || k==="black" || k==="brown") return k;
+    const idx = ROT.indexOf(k); return idx<0 ? k : ROT[(idx + v*3) % ROT.length];
+  };
+  const shapes = d.shapes.map(s => s.c ? Object.assign({}, s, {c: map(s.c)}) : s);
+  const used = [...new Set(shapes.filter(s=>s.c).map(s=>s.c))];
+  // palette: all target colours + distractors up to 6 (deterministic per level)
+  const pal = used.slice();
+  let seed = n*7;
+  const pool = BASE.filter(k=>!pal.includes(k) && !(SIMILAR[k]||[]).some(x=>pal.includes(x)));
+  while (pal.length < 6 && pool.length){ seed = (seed*31+11)%997; pal.push(pool.splice(seed%pool.length,1)[0]); }
+  for (let j=pal.length-1;j>0;j--){ seed=(seed*31+11)%997; const r=seed%(j+1); [pal[j],pal[r]]=[pal[r],pal[j]]; }
+  return {n, name: d.name + (v ? " " + (v+1) : ""), shapes, palette: pal};
+}
+
+/* ================= STORAGE ================= */
+let save = {last:1, done:[], purchased:false, sound:true, maxUnlockedLevel:1};
+try { const raw = localStorage.getItem(STORE_KEY); if (raw) save = Object.assign(save, JSON.parse(raw)); } catch(e){}
+// eski kayıtlar için: tamamlanan en yüksek seviyenin bir sonrası açık olsun
+save.maxUnlockedLevel = Math.min(TOTAL_LEVELS, Math.max(1, save.maxUnlockedLevel|0, ...save.done.map(d=>d+1)));
+save.last = Math.max(1, Math.min(save.last|0, save.maxUnlockedLevel));
+function persist(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(save)); } catch(e){} }
+const isLocked = n => n > FREE_LEVELS && !save.purchased;          // satın alma kilidi (11+)
+const isProgressLocked = n => n > save.maxUnlockedLevel;            // ilerleme kilidi
+
+/* ================= AUDIO (WebAudio, no files) ================= */
+let ac = null;
+function actx(){ if(!ac){ try{ ac = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(ac && ac.state==="suspended") ac.resume(); return ac; }
+function tone(f, dur, type, vol, delay, f2){
+  if (!save.sound) return; const a = actx(); if (!a) return;
+  const t = a.currentTime + (delay||0), o = a.createOscillator(), g = a.createGain();
+  o.type = type||"sine"; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t+dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol||0.25, t+0.015); g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+  o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+dur+0.05);
+}
+const SFX = {
+  click(){ tone(700,.08,"triangle",.2); },
+  pick(){ tone(520,.09,"sine",.25); tone(780,.12,"sine",.2,.06); },
+  paint(){ tone(260,.16,"sine",.35,0,720); tone(1200,.05,"triangle",.08,.04); },
+  undo(){ tone(600,.12,"sine",.2,0,350); },
+  oops(){ tone(520,.18,"triangle",.22,0,440); tone(440,.26,"triangle",.22,.18,330); },
+  win(){ [523,659,784,1047].forEach((f,i)=>tone(f,.25,"triangle",.25,i*.12)); tone(1319,.5,"sine",.2,.5); },
+  lock(){ tone(660,.12,"triangle",.18,0,600); tone(494,.22,"triangle",.16,.11,440); tone(1320,.06,"sine",.05,.02); }
+};
+/* ================= BACKGROUND MUSIC (marimba-style loop, pure WebAudio) ================= */
+const Music = (function(){
+  const SEMI = {C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+  const f = n => 440 * Math.pow(2, ((parseInt(n.slice(-1),10)+1)*12 + SEMI[n[0]] - 69)/12);
+  const _ = null;
+  const MEL = [
+    "E5",_,"G5",_,"A5","G5","E5",_,   "D5",_,"G5",_,"B4",_,"D5",_,
+    "C5",_,"E5",_,"A5",_,"G5","E5",   "F5",_,"A5",_,"G5","F5","E5",_,
+    "E5","G5","C6",_,"G5",_,"E5",_,   "A5",_,"F5",_,"A5","C6","A5",_,
+    "G5",_,"D5",_,"F5","E5","D5",_,   "C5",_,"E5","G5","C6",_,_,_ ];
+  const BASS = ["C3","G2","A2","F2","C3","F2","G2","C3"];
+  const STEP = 0.27, VOL = 0.55;
+  let timer = null, master = null, step = 0, next = 0, unlocked = false;
+  function note(freq, t, vol, len){
+    const a = ac, g = a.createGain(), o1 = a.createOscillator(), o2 = a.createOscillator(), g2 = a.createGain();
+    o1.type = "sine"; o1.frequency.value = freq;
+    o2.type = "sine"; o2.frequency.value = freq*4; g2.gain.value = 0.18;   // marimba overtone
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t+0.006); g.gain.exponentialRampToValueAtTime(0.0001, t+len);
+    o1.connect(g); o2.connect(g2); g2.connect(g); g.connect(master);
+    o1.start(t); o2.start(t); o1.stop(t+len+0.05); o2.stop(t+0.25);
+  }
+  function tick(){
+    while (next < ac.currentTime + 0.25){
+      const m = MEL[step % MEL.length];
+      if (m) note(f(m), next, 0.11, 0.7);
+      if (step % 4 === 0) note(f(BASS[Math.floor(step/8) % BASS.length]), next, 0.09, 0.9);
+      next += STEP; step++;
+    }
+  }
+  function start(){
+    if (!unlocked || !save.sound || timer || document.hidden) return;
+    const a = actx(); if (!a) return;
+    master = a.createGain(); master.gain.setValueAtTime(0.0001, a.currentTime);
+    master.gain.exponentialRampToValueAtTime(VOL, a.currentTime + 1.2); master.connect(a.destination);
+    next = a.currentTime + 0.15; timer = setInterval(tick, 60); tick();
+  }
+  function stop(){
+    if (timer){ clearInterval(timer); timer = null; }
+    if (master && ac){ const m = master; try{ m.gain.cancelScheduledValues(ac.currentTime); m.gain.setValueAtTime(m.gain.value, ac.currentTime); m.gain.linearRampToValueAtTime(0, ac.currentTime+0.25); }catch(e){} setTimeout(()=>{ try{ m.disconnect(); }catch(e){} }, 400); }
+    master = null;
+  }
+  function unlock(){ if (unlocked) return; unlocked = true; start(); }
+  document.addEventListener("visibilitychange", ()=>{ if (document.hidden) stop(); else start(); });
+  return {start, stop, unlock};
+})();
+["pointerdown","touchstart","keydown"].forEach(ev=>document.addEventListener(ev, ()=>{ actx(); Music.unlock(); }, {capture:true, passive:true}));
+
+function say(text){
+  if (!save.sound) return;
+  // Android uygulamasında (Capacitor) yerel Türkçe metin okuma eklentisi kullanılır
+  const TTS = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.TextToSpeech;
+  if (TTS){ try{ TTS.stop().catch(()=>{}); TTS.speak({text, lang:"tr-TR", rate:0.95, pitch:1.3, volume:1.0, category:"ambient"}).catch(()=>{}); }catch(e){} return; }
+  if (!("speechSynthesis" in window)) return;
+  try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang="tr-TR"; u.rate=.95; u.pitch=1.3; speechSynthesis.speak(u);}catch(e){}
+}
+
+/* ================= ICONS ================= */
+const IC = {
+  home:'<svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10.5V20h4.5v-5h3v5H18v-9.5" fill="#fff"/></svg>',
+  undo:'<svg viewBox="0 0 24 24"><path d="M9 6 4 11l5 5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 11H14a6 6 0 0 1 0 12h-3" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" transform="translate(0 -3)"/></svg>',
+  check:'<svg viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19.5 7" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  next:'<svg viewBox="0 0 24 24"><path d="M8 5l8 7-8 7" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  again:'<svg viewBox="0 0 24 24"><path d="M19 12a7 7 0 1 1-2.1-5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M17.5 3v4.5H13" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  son:'<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#fff"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  soff:'<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#fff"/><path d="M16 9l5 6M21 9l-5 6" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>',
+  talk:'<svg viewBox="0 0 24 24"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-9l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" fill="#fff"/><circle cx="8" cy="11" r="1.4" fill="#ff8a1e"/><circle cx="12" cy="11" r="1.4" fill="#ff8a1e"/><circle cx="16" cy="11" r="1.4" fill="#ff8a1e"/></svg>',
+  unlock:'<svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2.5" fill="#fff"/><path d="M8 10V7a4 4 0 0 1 8 0" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="15.5" r="1.8" fill="#43b52c"/></svg>',
+  star:'<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.5l1.3-6.6L2.5 9.3l6.6-.8z" fill="#FFD93B" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+  lockG:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#8a7a66" stroke="#fff" stroke-width="2"/><rect x="7.5" y="11" width="9" height="7" rx="1.5" fill="#fff"/><path d="M9.5 11V9a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="#fff" stroke-width="2"/></svg>',
+  lockS:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#ff8a1e" stroke="#fff" stroke-width="2"/><rect x="7.5" y="11" width="9" height="7" rx="1.5" fill="#fff"/><path d="M9.5 11V9a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="#fff" stroke-width="2"/></svg>'
+};
+const $ = id => document.getElementById(id);
+function setIcon(id, k){ $(id).innerHTML = IC[k]; }
+["gHome","lvHome","wHome"].forEach(i=>setIcon(i,"home"));
+setIcon("gUndo","undo"); setIcon("btnDone","check"); setIcon("wNext","next"); setIcon("wAgain","again");
+setIcon("gSay","talk"); setIcon("lvUnlock","unlock");
+function refreshSound(){ ["mSound","gSound"].forEach(i=>{ setIcon(i, save.sound?"son":"soff"); $(i).classList.toggle("off",!save.sound); }); }
+refreshSound();
+
+/* ================= SVG BUILDER ================= */
+const NS = "http://www.w3.org/2000/svg";
+function buildSVG(level, mode){ // mode: "play" | "ref"
+  const svg = document.createElementNS(NS,"svg");
+  svg.setAttribute("viewBox","0 0 300 300");
+  if (mode==="play") svg.innerHTML = '<defs><pattern id="emptyPat" width="14" height="14" patternUnits="userSpaceOnUse">'
+    + '<rect width="14" height="14" fill="#F3F3F7"/><circle cx="7" cy="7" r="1.6" fill="#D5D5E0"/></pattern></defs>';
+  level.shapes.forEach((s,idx)=>{
+    const el = document.createElementNS(NS, s.e);
+    for (const k in s){ if (k!=="e" && k!=="c" && k!=="s") el.setAttribute(k, s[k]); }
+    if (!s.stroke) el.setAttribute("stroke", INK);
+    if (s["stroke-width"]===undefined) el.setAttribute("stroke-width", 5);
+    el.setAttribute("stroke-linejoin","round"); el.setAttribute("stroke-linecap","round");
+    if (s.c){
+      if (mode==="ref") el.setAttribute("fill", C[s.c]);
+      else { el.setAttribute("fill", EMPTY); el.classList.add("rg"); el.dataset.target = s.c; el.dataset.cur = ""; el.dataset.i = idx; }
+    } else el.setAttribute("fill", s.s || "#fff");
+    if (s.s==="none") el.setAttribute("fill","none");
+    svg.appendChild(el);
+  });
+  return svg;
+}
+
+/* ================= SCREENS ================= */
+function show(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active", s.id===id)); }
+function openOv(id){ $(id).classList.add("show"); }
+function closeOv(id){ $(id).classList.remove("show"); }
+document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>{ SFX.click(); closeOv(b.dataset.close); }));
+function tap(el, fn){ el.addEventListener("click", e=>{ actx(); fn(e); }); }
+
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2200); }
+
+/* ---- Menu ---- */
+function renderMenu(){
+  const hasProg = save.done.length>0;
+  $("playLbl").textContent = hasProg ? "Devam Et (Seviye " + save.last + ")" : "Oyna";
+  const a = getLevel(1), b = getLevel(5);
+  $("mascotA").innerHTML = ""; $("mascotA").appendChild(buildSVG(a,"ref")).setAttribute("width","100%");
+  $("mascotB").innerHTML = ""; $("mascotB").appendChild(buildSVG(b,"ref")).setAttribute("width","100%");
+  show("menu");
+}
+tap($("btnPlay"), ()=>{ SFX.click(); startLevel(save.last); });
+tap($("btnLevels"), ()=>{ SFX.click(); renderLevels(); });
+tap($("mSound"), toggleSound); tap($("gSound"), toggleSound);
+function toggleSound(){ save.sound = !save.sound; persist(); refreshSound(); SFX.click();
+  if (save.sound) Music.start(); else { Music.stop(); if ("speechSynthesis" in window) speechSynthesis.cancel(); } }
+tap($("btnPrivacy"), ()=>{ SFX.click(); openOv("ovPolicy"); });
+/* İlerlemeyi 1. seviyeye sıfırla (ebeveyn onaylı). Satın alma ve ses ayarı korunur. */
+tap($("btnReset"), ()=>{ SFX.click(); parentGate(()=>{
+  save.done = []; save.maxUnlockedLevel = 1; save.last = 1; persist();
+  toast("İlerleme sıfırlandı – Seviye 1"); renderMenu();
+}); });
+
+/* ---- Levels ---- */
+function renderLevels(){
+  const g = $("grid"); g.innerHTML = "";
+  for (let n=1;n<=TOTAL_LEVELS;n++){
+    const b = document.createElement("button"); b.className="lv"; b.textContent=n;
+    if (save.done.includes(n)){ b.classList.add("done"); b.insertAdjacentHTML("beforeend", '<span class="star">'+IC.star+'</span>'); }
+    const prog = isProgressLocked(n), pay = !prog && isLocked(n);
+    if (prog){ b.classList.add("lock"); b.insertAdjacentHTML("beforeend", '<span class="lk">'+IC.lockG+'</span>'); }
+    else if (pay){ b.classList.add("pay"); b.insertAdjacentHTML("beforeend", '<span class="lk">'+IC.lockS+'</span>'); }
+    if (n===save.last && !prog && !pay) b.classList.add("cur");
+    tap(b, ()=>{
+      if (prog){ SFX.lock(); b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake"); }
+      else if (pay){ SFX.click(); openPaywall(n); }
+      else { SFX.click(); startLevel(n); }
+    });
+    g.appendChild(b);
+  }
+  $("lvUnlock").style.visibility = save.purchased ? "hidden" : "visible";
+  show("levels");
+}
+tap($("lvHome"), ()=>{ SFX.click(); renderMenu(); });
+tap($("lvUnlock"), ()=>{ SFX.click(); openPaywall(FREE_LEVELS+1); });
+
+/* ---- Game ---- */
+let cur = null, color = null, history = [];
+function startLevel(n){
+  n = Math.max(1, Math.min(TOTAL_LEVELS, n, save.maxUnlockedLevel));
+  if (isLocked(n)){ openPaywall(n); return; }
+  cur = getLevel(n); history = [];
+  save.last = n; persist();
+  $("lvlBadge").textContent = "Seviye " + n + " • " + cur.name;
+  $("refName").textContent = cur.name;
+  const board = $("board"); board.innerHTML = ""; const svg = buildSVG(cur,"play"); board.appendChild(svg);
+  $("refSvg").innerHTML = ""; $("refSvg").appendChild(buildSVG(cur,"ref"));
+  // palette
+  const pal = $("palette"); pal.innerHTML = "";
+  cur.palette.forEach((k,i)=>{
+    const s = document.createElement("button"); s.className = "sw" + (k==="white" ? " wht" : ""); s.style.background=C[k]; s.dataset.k=k; s.setAttribute("aria-label",k);
+    s.addEventListener("pointerdown", e=>{ e.preventDefault(); actx(); selectColor(k); SFX.pick(); });
+    pal.appendChild(s);
+  });
+  selectColor(cur.palette[0]);
+  svg.querySelectorAll(".rg").forEach(r=>r.addEventListener("pointerdown", e=>{ e.preventDefault(); actx(); paint(r); }));
+  $("btnDone").classList.remove("ready");
+  show("game");
+  setTimeout(()=>say("Aynı renklere boya!"), 300);
+}
+function selectColor(k){
+  color = k; $("brushTip").setAttribute("fill", C[k]);
+  document.querySelectorAll(".sw").forEach(s=>s.classList.toggle("sel", s.dataset.k===k));
+}
+function paint(r){
+  if (!color || r.dataset.cur===color) return;
+  history.push({r, prev:r.dataset.cur});
+  r.dataset.cur = color; r.setAttribute("fill", C[color]);
+  r.classList.remove("pop","hint"); void r.getBBox(); r.classList.add("pop");
+  SFX.paint(); updateReady();
+}
+function updateReady(){
+  const all = [...$("board").querySelectorAll(".rg")];
+  $("btnDone").classList.toggle("ready", all.every(r=>r.dataset.cur===r.dataset.target));
+}
+tap($("gUndo"), ()=>{
+  const h = history.pop(); if (!h){ SFX.click(); return; }
+  h.r.dataset.cur = h.prev; h.r.setAttribute("fill", h.prev ? C[h.prev] : EMPTY); SFX.undo(); updateReady();
+});
+tap($("gHome"), ()=>{ SFX.click(); renderMenu(); });
+tap($("gSay"), ()=>{ SFX.click(); say("Sağdaki resme bak. Aynı renklere boya!"); });
+tap($("eyeBtn"), openBigRef); tap($("refSvg"), openBigRef);
+function openBigRef(){ SFX.click(); $("bigRef").innerHTML=""; $("bigRef").appendChild(buildSVG(cur,"ref")); openOv("ovRef"); }
+
+const CHEER = ["Tekrar bak!","Az kaldı!","Biraz daha!","Sağdaki resme bak!"];
+tap($("btnDone"), ()=>{
+  const all = [...$("board").querySelectorAll(".rg")];
+  const wrong = all.filter(r=>r.dataset.cur!==r.dataset.target);
+  if (!wrong.length){ levelComplete(); return; }
+  SFX.oops();
+  const b = $("board"); b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake");
+  wrong.forEach(r=>{ r.classList.remove("hint"); void r.getBBox(); r.classList.add("hint"); });
+  const msg = CHEER[Math.floor(Math.random()*CHEER.length)];
+  const bub = $("bubble"); bub.textContent = msg; bub.classList.add("show");
+  setTimeout(()=>bub.classList.remove("show"), 1400);
+  say(msg);
+});
+
+function levelComplete(){
+  const n = cur.n;
+  if (!save.done.includes(n)) save.done.push(n);
+  save.maxUnlockedLevel = Math.max(save.maxUnlockedLevel, Math.min(TOTAL_LEVELS, n+1));
+  save.last = Math.min(TOTAL_LEVELS, n+1); persist();
+  SFX.win(); confetti(); say("Harika! Çok güzel boyadın!");
+  $("winStars").innerHTML = IC.star+IC.star+IC.star;
+  $("winTitle").textContent = n>=TOTAL_LEVELS ? "Şampiyon!" : ["Harika!","Süper!","Muhteşem!","Bravo!"][n%4];
+  if (n>=TOTAL_LEVELS) setTimeout(()=>{ confetti(); say("Tebrikler şampiyon! Bütün resimleri boyadın!"); }, 1200);
+  $("winArt").innerHTML = ""; $("winArt").appendChild(buildSVG(cur,"ref"));
+  $("wNext").style.display = n>=TOTAL_LEVELS ? "none" : "";
+  setTimeout(()=>openOv("ovWin"), 450);
+}
+tap($("wNext"), ()=>{ SFX.click(); closeOv("ovWin"); const nx = cur.n+1; if (isLocked(nx)) { renderMenu(); openPaywall(nx); } else startLevel(nx); });
+tap($("wAgain"), ()=>{ SFX.click(); closeOv("ovWin"); startLevel(cur.n); });
+tap($("wHome"), ()=>{ SFX.click(); closeOv("ovWin"); renderMenu(); });
+
+/* ================= PARENTAL GATE ================= */
+let gateCb = null, gateAns = 0, gateVal = "";
+(function buildPad(){
+  const pad = $("gatePad");
+  ["1","2","3","4","5","6","7","8","9","0","⌫","OK"].forEach(k=>{
+    const b = document.createElement("button"); b.textContent = k;
+    if (k==="OK") b.className="ok"; if (k==="⌫") b.className="del";
+    tap(b, ()=>{
+      SFX.click();
+      if (k==="⌫") gateVal = gateVal.slice(0,-1);
+      else if (k==="OK") return checkGate();
+      else if (gateVal.length<3) gateVal += k;
+      $("gateIn").textContent = gateVal;
+    });
+    pad.appendChild(b);
+  });
+})();
+function parentGate(cb){
+  gateCb = cb; gateVal = ""; $("gateIn").textContent = "";
+  const a = 3 + Math.floor(Math.random()*7), b = 2 + Math.floor(Math.random()*8);
+  const useMul = Math.random()<.5;
+  gateAns = useMul ? a*b : a+b+10;
+  $("gateQ").textContent = useMul ? (a + " × " + b + " = ?") : (a + " + " + (b+10) + " = ?");
+  openOv("ovGate");
+}
+function checkGate(){
+  if (parseInt(gateVal,10) === gateAns){ closeOv("ovGate"); const cb = gateCb; gateCb = null; cb && cb(); }
+  else { const g=$("gateIn"); g.classList.remove("err"); void g.offsetWidth; g.classList.add("err"); SFX.oops(); setTimeout(()=>parentGate(gateCb), 450); }
+}
+
+/* ================= PAYWALL / IAP ================= */
+let payTarget = FREE_LEVELS+1;
+function openPaywall(n){ payTarget = n; $("btnBuy").textContent = "Tüm Seviyeleri Aç - " + PRICE; openOv("ovPay"); }
+tap($("btnBuy"), ()=>{ SFX.click(); parentGate(()=>purchaseFullGame(false)); });
+tap($("btnRestore"), ()=>{ SFX.click(); parentGate(()=>purchaseFullGame(true)); });
+
+/* Satın alma noktası: Capacitor/Play Billing eklentisi bağlandığında
+   window.PandaBilling.buy(productId) Promise<boolean> sağlanırsa o kullanılır.
+   Yoksa (tarayıcı prototipi) satın alma simüle edilir. */
+function purchaseFullGame(restore){
+  const ok = () => { save.purchased = true; persist(); closeOv("ovPay"); SFX.win(); confetti(); toast("Tam sürüm açıldı!");
+    if (payTarget <= save.maxUnlockedLevel) startLevel(payTarget);
+    else if ($("levels").classList.contains("active")) renderLevels(); else renderMenu(); };
+  const B = window.PandaBilling;
+  if (B && typeof B[restore?"restore":"buy"]==="function"){
+    B[restore?"restore":"buy"]("unlock_all_levels").then(r=>{ if(r) ok(); else toast("İşlem tamamlanmadı"); }).catch(()=>toast("İşlem tamamlanmadı"));
+  } else ok();
+}
+
+/* ================= CONFETTI ================= */
+function confetti(){
+  const cv = $("confetti"), ctx = cv.getContext("2d");
+  cv.width = innerWidth; cv.height = innerHeight;
+  const cols = Object.values(C).filter(c=>c!==C.black && c!==C.brown);
+  const P = Array.from({length:140},()=>({x:cv.width/2+(Math.random()-.5)*cv.width*.3,y:cv.height*.45,vx:(Math.random()-.5)*16,vy:-Math.random()*16-6,
+    s:6+Math.random()*9,r:Math.random()*6,vr:(Math.random()-.5)*.4,c:cols[Math.floor(Math.random()*cols.length)],sh:Math.random()<.5}));
+  let f = 0;
+  (function loop(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    P.forEach(p=>{ p.vy+=.45; p.vx*=.99; p.x+=p.vx; p.y+=p.vy; p.r+=p.vr;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle=p.c;
+      if (p.sh){ ctx.beginPath(); ctx.arc(0,0,p.s/2,0,7); ctx.fill(); } else ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);
+      ctx.restore(); });
+    if (++f < 150) requestAnimationFrame(loop); else ctx.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+
+/* ================= BOOT ================= */
+document.addEventListener("contextmenu", e=>e.preventDefault());
+document.addEventListener("gesturestart", e=>e.preventDefault());
+setTimeout(()=>{ $("splash").style.transition="opacity .5s"; $("splash").style.opacity="0";
+  setTimeout(()=>{ $("splash").style.opacity=""; renderMenu(); }, 500); }, 2700);
+})();
+</script>
+</body>
+</html>
